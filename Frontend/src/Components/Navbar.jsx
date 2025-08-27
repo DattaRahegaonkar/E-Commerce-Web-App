@@ -42,9 +42,6 @@ const Navbar = () => {
                 <NavLink to="/add" className="nav-link text-gray-200 hover:text-purple-400">
                   Add Product
                 </NavLink>
-                <NavLink to="/update" className="nav-link text-gray-200 hover:text-purple-400">
-                  Update Product
-                </NavLink>
                 <NavLink to="/profile" className="nav-link text-gray-200 hover:text-purple-400">
                   Profile
                 </NavLink>
@@ -112,9 +109,6 @@ const Navbar = () => {
               </NavLink>
               <NavLink to="/add" className="block nav-link text-gray-200 hover:text-purple-400">
                 Add Product
-              </NavLink>
-              <NavLink to="/update" className="block nav-link text-gray-200 hover:text-purple-400">
-                Update Product
               </NavLink>
               <NavLink to="/profile" className="block nav-link text-gray-200 hover:text-purple-400">
                 Profile

@@ -8,8 +8,23 @@ const Product = require("./db/Product");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Allow requests from both Netlify and local development
+const allowedOrigins = [
+  'https://ecommercesignuplogin.netlify.app',
+  'http://localhost:5173', // Default Vite dev server port
+  'http://127.0.0.1:5173'  // Alternative localhost
+];
+
 app.use(cors({
-  origin: "https://ecommercesignuplogin.netlify.app", // replace with your Netlify URL
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   methods: "GET,POST,PUT,DELETE",
   credentials: true
 }));
@@ -98,9 +113,65 @@ app.get("/search/:key", async (req, res) => {
   res.send(result);
 });
 
-app.patch("/update", (req, res) => {
+app.patch("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, category, company } = req.body;
+    
+    // Find the product and verify ownership
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+    
+    // Update the product
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { name, price, category, company },
+      { new: true }
+    );
+    
+    res.json(updatedProduct);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Error updating product" });
+  }
+});
 
-  res.send("ok");
+// Add endpoint to get a single product by ID
+app.get("/product/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+    
+    res.json(product);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Error fetching product" });
+  }
+});
+
+// Add delete endpoint
+app.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const product = await Product.findByIdAndDelete(id);
+    
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+    
+    res.json({ msg: "Product deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Error deleting product" });
+  }
 });
 
 const port = process.env.PORT || 3000
