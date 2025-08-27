@@ -1,0 +1,83 @@
+const apiBaseUrl = import.meta.env.VITE_API_URL;
+
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+const Product = () => {
+  const [all, setAll] = useState([]);
+
+  async function ShowProducts() {
+    try {
+      const response = await fetch(`${apiBaseUrl}/show`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      // try {
+      //   const response = await fetch("/show", {
+      //     method: "GET",
+      //     headers: { "Content-Type": "application/json" },
+      //   });
+
+      const result = await response.json();
+      setAll(result);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  }
+
+  useEffect(() => {
+    ShowProducts();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white px-6 py-10">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-3xl font-bold border-l-4 border-purple-500 pl-3"
+        >
+          Products
+        </motion.h1>
+
+        {/* Product List */}
+        <div className="space-y-4">
+          {all.map((product, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="bg-[#1e293b] rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex justify-between items-center"
+            >
+              <div>
+                <p className="text-xl font-semibold text-purple-400">
+                  {product.name}
+                </p>
+                <p className="text-gray-300 mt-1">&#8377; {product.price}</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  {product.category}
+                </p>
+              </div>
+
+              {/* Buttons - Uncomment when needed */}
+              {/* <div className="flex gap-3">
+                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition">
+                  Edit
+                </button>
+                <button className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition">
+                  Delete
+                </button>
+              </div> */}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Product;

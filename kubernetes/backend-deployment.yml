@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: signup-login-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: dattarahegaonkar09/signup-login-e-commerce-backend
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MONGO_URI
+          value: mongodb://mongoadmin:secret@mongodb:27017/E-Commerce?authSource=admin
+
+
