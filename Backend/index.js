@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: "https://ecommercesignuplogin.netlify.app", // replace with your Netlify URL
+  origin: ["https://ecommercesignuplogin.netlify.app", "http://localhost:5173"],
   methods: "GET,POST,PUT,DELETE",
   credentials: true
 }));
