@@ -15,6 +15,7 @@ const Product = () => {
       const response = await fetch(`${apiBaseUrl}/show`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include' // Add credentials to include cookies with JWT token
       });
 
       const result = await response.json();
@@ -41,10 +42,11 @@ const Product = () => {
       console.log(`Deleting product with ID: ${productId}`);
       const response = await fetch(`${apiBaseUrl}/delete/${productId}`, {
         method: "DELETE",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           'Accept': 'application/json'
         },
+        credentials: 'include' // Add credentials to include cookies with JWT token
       });
 
       const result = await response.json().catch(() => ({}));
@@ -76,7 +78,9 @@ const Product = () => {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/search/${searchTerm}`);
+      const response = await fetch(`${apiBaseUrl}/search/${searchTerm}`, {
+        credentials: 'include' // Add credentials to include cookies with JWT token
+      });
       if (response.ok) {
         const result = await response.json();
         setAll(result);
@@ -127,35 +131,72 @@ const Product = () => {
           />
         </motion.div>
 
-        {/* Product List */}
-        <div className="space-y-4">
+        {/* Product Grid - Horizontal Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {all.map((product, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="bg-[#1e293b] rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex justify-between items-center"
+              className="bg-[#1e293b] rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group"
+              onClick={() => navigate(`/product/${product._id}`)}
             >
-              <div>
-                <p className="text-xl font-semibold text-purple-400">
-                  {product.name}
-                </p>
-                <p className="text-gray-300 mt-1">&#8377; {product.price}</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {product.category}
-                </p>
+              {/* Product Image Placeholder */}
+              <div className="h-48 bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                <div className="text-white text-4xl opacity-50">
+                  📦
+                </div>
               </div>
 
-              <div className="flex gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleDelete(product._id)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition"
-                >
-                  Delete
-                </motion.button>
+              {/* Product Info */}
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-purple-400 mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors">
+                  {product.name}
+                </h3>
+
+                <p className="text-2xl font-bold text-green-400 mb-2">
+                  &#8377; {product.price}
+                </p>
+
+                <div className="flex items-center justify-between text-sm text-gray-400 mb-3">
+                  <span className="bg-gray-700 px-2 py-1 rounded-full text-xs">
+                    {product.category}
+                  </span>
+                  <span className="text-xs">
+                    {product.stock || 1} in stock
+                  </span>
+                </div>
+
+                <p className="text-xs text-gray-500 mb-3">
+                  by {product.company}
+                </p>
+
+                {/* Action Buttons - Hidden by default, show on hover */}
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(product._id);
+                    }}
+                    className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition"
+                  >
+                    Edit
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(product._id);
+                    }}
+                    className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition"
+                  >
+                    Delete
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           ))}

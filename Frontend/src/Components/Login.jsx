@@ -31,6 +31,7 @@ const Login = () => {
         method: "post",
         body: JSON.stringify({ email, password }),
         headers: { "Content-Type": "application/json" },
+        credentials: 'include' // Important for cookies to work
       });
 
       // try {
@@ -43,17 +44,19 @@ const Login = () => {
       let NewResult = await result.json();
 
       if (!result.ok) {
-        setError(NewResult.msg);
+        // Updated to use message field instead of msg
+        setError(NewResult.message || NewResult.msg || "Login failed");
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(NewResult));
+      // The backend now returns a user object within the response
+      const userData = NewResult.user || NewResult;
+      localStorage.setItem("user", JSON.stringify(userData));
       navigate("/");
     } catch (error) {
-      setError("something went wrong !");
+      console.error("Login error:", error);
+      setError("Something went wrong! Please try again.");
     }
-
-    console.log(error);
   };
 
   return (

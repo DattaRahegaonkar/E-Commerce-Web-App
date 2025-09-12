@@ -32,6 +32,7 @@ const Signup = () => {
         method: "post",
         body: JSON.stringify({ name, email, password }),
         headers: { "Content-Type": "application/json" },
+        credentials: 'include' // Important for cookies to work
       });
 
       // try {
@@ -44,17 +45,25 @@ const Signup = () => {
       let NewResult = await result.json();
 
       if (!result.ok) {
-        setError(NewResult.msg);
+        // Handle error response with improved error message display
+        const errorMessage = NewResult.message ||
+                            (NewResult.errors && NewResult.errors[0]) ||
+                            NewResult.msg ||
+                            "Registration failed";
+        
+        console.error("Signup error response:", NewResult);
+        setError(errorMessage);
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(NewResult));
+      // The backend now returns a user object within the response
+      const userData = NewResult.user || NewResult;
+      localStorage.setItem("user", JSON.stringify(userData));
       navigate("/");
     } catch (error) {
-      setError("something went wrong !");
+      console.error("Signup error:", error);
+      setError("Connection error. Please check your internet connection and try again.");
     }
-
-    console.log(error);
   };
 
   return (

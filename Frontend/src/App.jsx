@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import React from "react";
 
 import Product from "./Components/Product";
+import ProductDetail from "./Components/ProductDetail";
 import AddProduct from "./Components/AddProduct";
 import UpdateProduct from "./Components/UpdateProduct";
 import Logout from "./Components/Logout";
@@ -50,6 +51,15 @@ const router = createBrowserRouter([
           <div>
             <Navbar />
             <AddProduct />
+          </div>
+        ),
+      },
+      {
+        path: "/product/:id",
+        element: (
+          <div>
+            <Navbar />
+            <ProductDetail />
           </div>
         ),
       },
