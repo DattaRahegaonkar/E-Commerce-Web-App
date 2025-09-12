@@ -106,8 +106,7 @@ const AddProduct = () => {
       }
       
       const result = await response.json();
-      console.log("Product added successfully:", result);
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -131,7 +130,7 @@ const AddProduct = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4 pt-20">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

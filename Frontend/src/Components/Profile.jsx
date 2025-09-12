@@ -4,8 +4,6 @@ import { motion } from "framer-motion";
 const Profile = () => {
   const auth = JSON.parse(localStorage.getItem("user"));
 
-  console.log(auth);
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4">
       <motion.div

@@ -1,6 +1,5 @@
 // Fallback to localhost if environment variable is not set
 const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-console.log('API Base URL:', apiBaseUrl); // For debugging
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -39,7 +38,6 @@ const Product = () => {
     }
 
     try {
-      console.log(`Deleting product with ID: ${productId}`);
       const response = await fetch(`${apiBaseUrl}/delete/${productId}`, {
         method: "DELETE",
         headers: {
@@ -94,7 +92,7 @@ const Product = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white px-6 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white px-6 py-10 pt-18">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Title */}
         <motion.h1

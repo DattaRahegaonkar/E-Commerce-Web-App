@@ -16,7 +16,6 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("ok");
     setSearch("");
   };
 
