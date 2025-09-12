@@ -60,17 +60,17 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-6">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full max-w-sm sm:max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-[#1e293b] rounded-xl p-8 space-y-6 shadow-lg"
+          className="bg-[#1e293b] rounded-xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-lg"
         >
           {/* Title */}
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold border-l-4 border-purple-500 pl-3 inline-block">
+            <h1 className="text-2xl sm:text-3xl font-bold border-l-4 border-purple-500 pl-3 inline-block">
               Login
             </h1>
             <p className="text-gray-300">Sign in to continue to your account</p>

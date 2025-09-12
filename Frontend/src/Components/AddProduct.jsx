@@ -130,14 +130,14 @@ const AddProduct = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4 pt-20">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl bg-[#1e293b] p-8 rounded-2xl shadow-lg my-8"
+        className="w-full max-w-sm sm:max-w-md lg:max-w-2xl bg-[#1e293b] p-4 sm:p-6 lg:p-8 rounded-2xl shadow-lg my-4 sm:my-6 lg:my-8 mx-2 sm:mx-4"
       >
-        <h2 className="text-3xl font-bold text-center text-purple-400 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center text-purple-400 mb-4 sm:mb-6">
           Add Product
         </h2>
         

@@ -92,8 +92,8 @@ const Product = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white px-6 py-10 pt-18">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white px-20 py-10 pt-6">
+      <div className="w-full max-w-none mx-auto space-y-6">
         {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: -12 }}
@@ -119,18 +119,18 @@ const Product = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative"
+          className="relative flex justify-center px-4"
         >
           <input
             type="text"
             placeholder="Search products..."
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full p-3 bg-[#1e293b] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full sm:w-1/2 p-3 bg-[#1e293b] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
           />
         </motion.div>
 
-        {/* Product Grid - Horizontal Layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Product Grid - Responsive Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
           {all.map((product, index) => (
             <motion.div
               key={index}

@@ -5,14 +5,14 @@ const Profile = () => {
   const auth = JSON.parse(localStorage.getItem("user"));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-[#1e293b] p-8 rounded-2xl shadow-lg text-center"
+        className="w-full max-w-sm sm:max-w-md bg-[#1e293b] p-4 sm:p-6 lg:p-8 rounded-2xl shadow-lg text-center"
       >
-        <h2 className="text-3xl font-bold text-purple-400 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-purple-400 mb-4 sm:mb-6">
           Profile
         </h2>
         
