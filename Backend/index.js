@@ -197,32 +197,32 @@ app.get("/search/:key", async (req, res) => {
 app.patch("/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, category, company } = req.body;
-    
+    const { name, price, category, company, stock } = req.body;
+
     // Find the product and verify ownership
     const product = await Product.findById(id);
-    
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    
+
     // Log product ownership details for debugging
     console.log('Product update - Product ID:', id);
     console.log('Product update - Product userid:', product.userid);
     console.log('Product update - Current user:', req.user.id);
-    
+
     // Verify the user owns this product - temporarily disabled for testing
     // if (product.userid && product.userid.toString() !== req.user.id) {
     //   return res.status(403).json({ message: "Not authorized to update this product" });
     // }
-    
+
     // Update the product
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      { name, price, category, company },
+      { name, price, category, company, stock },
       { new: true }
     );
-    
+
     res.json(updatedProduct);
   } catch (error) {
     console.error("Update product error:", error);
