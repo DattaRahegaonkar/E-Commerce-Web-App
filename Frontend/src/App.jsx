@@ -11,7 +11,7 @@ import Logout from "./Components/Logout";
 import Profile from "./Components/Profile";
 import NotFound from "./Components/NotFound";
 import SignUp from "./Components/Signup";
-import PrivateCompnent from "./Components/PrivateCompnent";
+import PrivateComponent from "./Components/PrivateComponent";
 import Login from "./Components/Login";
 
 const router = createBrowserRouter([
@@ -43,7 +43,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    element: <PrivateCompnent />,
+    element: <PrivateComponent />,
     children: [
       {
         path: "/add",
