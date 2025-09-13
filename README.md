@@ -125,3 +125,135 @@ npm run demo-data
 └── docker-compose.yml   # Docker configuration
 ```
 
+## Docker Deployment
+
+### Prerequisites
+```bash
+# Create Docker network and volume
+docker network create ecommerce-network
+docker volume create ecommerce-volume
+```
+
+### 1. MongoDB Container Setup
+
+#### Start MongoDB Container
+```bash
+docker run -d \
+  --name mongodb \
+  --network ecommerce-network \
+  -v ecommerce-volume:/data/db \
+  -e MONGO_INITDB_ROOT_USERNAME=root \
+  -e MONGO_INITDB_ROOT_PASSWORD=root123 \
+  -e MONGO_INITDB_DATABASE=ecommerceDB \
+  mongo:latest
+```
+
+#### Create Application User (Security Best Practice)
+```bash
+# Connect to MongoDB as root
+docker exec -it mongodb mongosh -u root -p root123 --authenticationDatabase admin
+
+# Switch to application database
+use ecommerceDB
+
+# Create dedicated user with limited privileges
+db.createUser({
+  user: "ecommerceuser",
+  pwd: "ecommerce123",
+  roles: [{ role: "readWrite", db: "ecommerceDB" }]
+})
+
+# Verify user creation
+show users
+
+# Exit MongoDB shell
+exit
+```
+
+### 2. Backend Container Setup
+
+#### Build Backend Image
+```bash
+cd Backend
+docker build --no-cache -t ecommerce-backend .
+```
+
+#### Run Backend Container
+```bash
+docker run -d \
+  --name backend \
+  --network ecommerce-network \
+  -p 8081:8081 \
+  --env-file .env \
+  ecommerce-backend:latest
+```
+
+#### Monitor Backend Logs
+```bash
+docker logs backend
+docker logs -f backend  # Follow logs in real-time
+```
+
+
+### 3. Frontend Container Setup
+
+#### Build Frontend Image
+```bash
+cd Frontend
+docker build --no-cache -t ecommerce-frontend .
+```
+
+#### Run Frontend Container
+```bash
+docker run -d \
+  --name frontend \
+  --network ecommerce-network \
+  -p 3000:80 \
+  --env-file .env \
+  ecommerce-frontend:latest
+```
+
+#### Monitor Frontend Logs
+```bash
+docker logs frontend
+docker logs -f frontend  # Follow logs in real-time
+```
+
+
+### 4. Verification
+
+#### Check Database Data
+```bash
+# Connect to MongoDB with application user
+docker exec -it mongodb mongosh -u ecommerceuser -p ecommerce123 --authenticationDatabase ecommerceDB
+
+# View collections and data
+show collections
+db.users.find().pretty()
+db.products.find().pretty()
+```
+
+#### Test API Endpoints
+```bash
+# Health check
+curl http://localhost:8081/show
+
+### 5. Container Management
+
+#### Stop Containers
+```bash
+docker stop frontend backend mongodb
+```
+
+#### Remove Containers
+```bash
+docker rm frontend backend mongodb
+```
+
+#### Clean Up Resources
+```bash
+docker network rm ecommerce-network
+docker volume rm ecommerce-volume
+docker rmi ecommerce-frontend ecommerce-backend
+```
+
