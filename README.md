@@ -1,181 +1,127 @@
-# Signup-Login App with Product Management
+# Product Management App
 
-This is a full-stack web application featuring user authentication and collaborative product management. Any authenticated user can create, view, update, or delete any product. The application consists of a React frontend and an Express.js backend with MongoDB database.
+A full-stack web application featuring secure user authentication and collaborative product management. Built with modern technologies, this app allows authenticated users to manage products with full CRUD operations in a responsive, user-friendly interface.
 
-## Key Features
+## Tech Stack
 
-- User registration and authentication
-- JWT-based authentication with HTTP-only cookies
-- Secure password handling with bcrypt
-- **Collaborative product management** - Any authenticated user can create, view, update, or delete any product
-- Product ownership tracking for audit purposes
-- Form validation
-- Responsive UI with Tailwind CSS and Framer Motion
-- Docker and Kubernetes support
+### Frontend
+- **React 19** - Modern UI library with latest features
+- **Vite** - Fast build tool and development server
+- **React Router DOM** - Client-side routing
+- **Tailwind CSS 4** - Utility-first CSS framework
+- **Framer Motion** - Animation library
+- **Lucide React** - Icon library
 
-## Recent Improvements
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web application framework
+- **JWT** - JSON Web Token authentication
+- **bcrypt** - Password hashing
+- **CORS** - Cross-origin resource sharing
 
-### Security Enhancements
-- Implemented bcrypt password hashing
-- Added JWT-based authentication with HTTP-only cookies
-- Created proper authentication middleware
-- Added input validation using express-validator
+### Database
+- **MongoDB** - NoSQL database
+- **Mongoose** - MongoDB object modeling
 
-### Code Quality Improvements
-- Enhanced error handling throughout the API
-- Updated Product model with better validation
-- Applied validation to all routes
-- Improved CORS configuration for better security
-- Added helper scripts for dependency management
-
-### Frontend Enhancements
-- Updated components to work with new API responses
-- Added proper credentials handling for cookies
-- Improved error handling and user feedback
-
-## Getting Started
+## Local Development Setup
 
 ### Prerequisites
-- Node.js (v14+)
-- MongoDB (local or remote)
-- npm or yarn
+- Node.js (v14 or higher)
+- MongoDB (local installation or MongoDB Atlas)
+- npm or yarn package manager
 
-### Installation and Setup
+### Quick Start
 
-#### Backend
-1. Navigate to the Backend directory:
-   ```
-   cd Backend
-   ```
+#### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd Signup-Login-App-Changes
+```
 
-2. Install dependencies and start the server:
-   ```
-   node start.js
-   ```
-   This script will:
-   - Check for missing dependencies and install them
-   - Create a basic .env file if one doesn't exist
-   - Start the server
-
-3. Alternatively, you can install dependencies manually:
-   ```
-   npm install
-   ```
-
-#### Frontend
-1. Navigate to the Frontend directory:
-   ```
-   cd Frontend
-   ```
-
-2. Install dependencies:
-   ```
-   npm install
-   ```
-
-3. Start the development server:
-   ```
-   npm run dev
-   ```
-
-### Environment Variables
+### 2. Environment Configuration
 
 #### Backend (.env)
 ```
+cp .env.example .env
+```
+OR
+```env
 MONGO_URI=mongodb://localhost:27017/userdb
-JWT_SECRET=your-secret-key
+JWT_SECRET=your-secure-jwt-secret-key
+JWT_EXPIRES_IN=7d
 NODE_ENV=development
+ALLOWED_ORIGINS=http://localhost:5173
+PORT=3000
 ```
 
 #### Frontend (.env)
 ```
+cp .env.example .env
+```
+OR
+```env
 VITE_API_URL=http://localhost:3000
 ```
 
+
+#### 3. Backend Setup
+```
+cd Backend
+npm install
+npm start
+```
+
+#### 4. Frontend Setup
+```
+cd Frontend
+npm install
+npm run dev
+```
+
+
 ## Demo Data
 
-The project includes a demo data script to populate your database with sample users and products for testing:
+Populate your database with sample data for testing:
 
-### Adding Demo Data
 ```bash
 cd Backend
 npm run demo-data
 ```
 
-This will create:
-- **3 sample users** (including 1 admin user)
-- **8 sample products** across different categories
-
-### Sample Login Credentials
-- **User 1**: `john@example.com` / `password123`
-- **User 2**: `jane@example.com` / `password123`
-- **User 3**: `alice@example.com` / `password123`
-
-### Clearing Demo Data
-To clear existing demo data and recreate it:
-```bash
-npm run demo-data:clear
-```
-
-### Manual Usage
-```bash
-# Create demo data
-node demo-data.js
-
-# Clear and recreate demo data
-node demo-data.js --clear
-
-# Show help
-node demo-data.js --help
-```
-
-## Docker Deployment
-
-The project includes Docker configuration for easy deployment:
-
-```
-docker-compose up
-```
-
-This will start:
-- MongoDB database
-- Backend API server
-- Frontend web server
+**Sample Login Credentials:**0
+- `john@example.com` / `password123`
+- `jane@example.com` / `password123`
+- `alice@example.com` / `password123`
 
 ## API Endpoints
 
 ### Authentication
-- `POST /signup` - Register a new user
-- `POST /login` - Authenticate a user
-- `POST /logout` - Log out a user
+- `POST /signup` - Register new user
+- `POST /login` - User authentication
+- `POST /logout` - User logout
 
 ### Products
 - `GET /show` - Get all products
-- `GET /product/:id` - Get a specific product
-- `POST /add` - Add a new product (protected - tracks creator)
-- `PATCH /update/:id` - Update any product (protected - any authenticated user)
-- `DELETE /delete/:id` - Delete any product (protected - any authenticated user)
+- `GET /product/:id` - Get specific product
+- `POST /add` - Create product (protected)
+- `PATCH /update/:id` - Update product (protected)
+- `DELETE /delete/:id` - Delete product (protected)
 - `GET /search/:key` - Search products
 
-**Note**: Any authenticated user can create, update, or delete any product. The `userid` field tracks who originally created each product for audit purposes.
+## Project Structure
 
-## Troubleshooting
+```
+├── Backend/
+│   ├── db/              # Database models
+│   ├── middleware/      # Auth & validation
+│   ├── index.js         # Main server file
+│   └── demo-data.js     # Sample data script
+├── Frontend/
+│   ├── src/
+│   │   ├── Components/  # React components
+│   │   └── App.jsx      # Main app component
+│   └── public/
+├── kubernetes/          # K8s deployment files
+└── docker-compose.yml   # Docker configuration
+```
 
-### Common Issues
-
-1. **500 Internal Server Error on Signup/Login**
-   - Ensure bcrypt is properly installed: `npm uninstall bcrypt && npm install bcrypt`
-   - Check MongoDB connection string in .env file
-   - Make sure JWT_SECRET is set in .env file
-
-2. **Authentication Issues**
-   - Cookies not working: Check CORS configuration and ensure credentials: 'include' is set in frontend fetch requests
-   - Token issues: Verify JWT_SECRET is consistent
-
-3. **Database Connection Problems**
-   - Verify MongoDB is running
-   - Check MONGO_URI in .env file
-
-## License
-
-This project is licensed under the ISC License.
