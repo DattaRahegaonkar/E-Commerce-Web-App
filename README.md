@@ -237,6 +237,7 @@ db.products.find().pretty()
 ```bash
 # Health check
 curl http://localhost:8081/show
+```
 
 ### 5. Container Management
 
