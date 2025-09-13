@@ -1,13 +1,14 @@
 # Signup-Login App with Product Management
 
-This is a full-stack web application featuring user authentication and product management. The application consists of a React frontend and an Express.js backend with MongoDB database.
+This is a full-stack web application featuring user authentication and collaborative product management. Any authenticated user can create, view, update, or delete any product. The application consists of a React frontend and an Express.js backend with MongoDB database.
 
 ## Key Features
 
 - User registration and authentication
 - JWT-based authentication with HTTP-only cookies
 - Secure password handling with bcrypt
-- Product management (create, read, update, delete)
+- **Collaborative product management** - Any authenticated user can create, view, update, or delete any product
+- Product ownership tracking for audit purposes
 - Form validation
 - Responsive UI with Tailwind CSS and Framer Motion
 - Docker and Kubernetes support
@@ -91,6 +92,43 @@ NODE_ENV=development
 VITE_API_URL=http://localhost:3000
 ```
 
+## Demo Data
+
+The project includes a demo data script to populate your database with sample users and products for testing:
+
+### Adding Demo Data
+```bash
+cd Backend
+npm run demo-data
+```
+
+This will create:
+- **3 sample users** (including 1 admin user)
+- **8 sample products** across different categories
+
+### Sample Login Credentials
+- **User 1**: `john@example.com` / `password123`
+- **User 2**: `jane@example.com` / `password123`
+- **User 3**: `alice@example.com` / `password123`
+
+### Clearing Demo Data
+To clear existing demo data and recreate it:
+```bash
+npm run demo-data:clear
+```
+
+### Manual Usage
+```bash
+# Create demo data
+node demo-data.js
+
+# Clear and recreate demo data
+node demo-data.js --clear
+
+# Show help
+node demo-data.js --help
+```
+
 ## Docker Deployment
 
 The project includes Docker configuration for easy deployment:
@@ -114,10 +152,12 @@ This will start:
 ### Products
 - `GET /show` - Get all products
 - `GET /product/:id` - Get a specific product
-- `POST /add` - Add a new product (protected)
-- `PATCH /update/:id` - Update a product (protected)
-- `DELETE /delete/:id` - Delete a product (protected)
+- `POST /add` - Add a new product (protected - tracks creator)
+- `PATCH /update/:id` - Update any product (protected - any authenticated user)
+- `DELETE /delete/:id` - Delete any product (protected - any authenticated user)
 - `GET /search/:key` - Search products
+
+**Note**: Any authenticated user can create, update, or delete any product. The `userid` field tracks who originally created each product for audit purposes.
 
 ## Troubleshooting
 

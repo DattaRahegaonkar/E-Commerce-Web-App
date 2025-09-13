@@ -34,13 +34,6 @@ const Login = () => {
         credentials: 'include' // Important for cookies to work
       });
 
-      // try {
-      //   let result = await fetch("/login", {
-      //     method: "post",
-      //     body: JSON.stringify({ email, password }),
-      //     headers: { "Content-Type": "application/json" },
-      //   });
-
       let NewResult = await result.json();
 
       if (!result.ok) {

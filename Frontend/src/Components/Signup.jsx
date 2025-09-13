@@ -35,13 +35,6 @@ const Signup = () => {
         credentials: 'include' // Important for cookies to work
       });
 
-      // try {
-      //   let result = await fetch("/signup", {
-      //     method: "post",
-      //     body: JSON.stringify({ name, email, password }),
-      //     headers: { "Content-Type": "application/json" },
-      //   });
-
       let NewResult = await result.json();
 
       if (!result.ok) {

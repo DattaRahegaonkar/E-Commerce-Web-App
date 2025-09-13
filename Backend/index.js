@@ -13,22 +13,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()); // Add cookie-parser middleware
 
-// Allow requests from both Netlify and local development
-const allowedOrigins = [
-  'https://ecommercesignuplogin.netlify.app',
-  'http://localhost:5173', // Default Vite dev server port
-  'http://127.0.0.1:5173'  // Alternative localhost
-];
+// Parse ALLOWED_ORIGINS from environment variable
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'https://ecommercesignuplogin.netlify.app']; // fallback
 
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if(!origin) return callback(null, true);
 
-    if(allowedOrigins.indexOf(origin) !== -1) {
+    if(allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // Allow all origins in development
+      // In development, allow all origins; in production, restrict to allowed origins
+      if(process.env.NODE_ENV === 'production') {
+        callback(new Error('Not allowed by CORS'));
+      } else {
+        callback(null, true); // Allow all origins in development
+      }
     }
   },
   methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
@@ -88,25 +91,9 @@ app.post("/login", validateLogin, async (req, res) => {
     }
     
     try {
-      // Check password with extra error handling
-      let isMatch = false;
-      
-      // Check if the user has a comparePassword method (for older accounts)
-      if (typeof user.comparePassword === 'function') {
-        isMatch = await user.comparePassword(password);
-      } else {
-        // For older accounts without hashed passwords (temporary fallback)
-        isMatch = (user.password === password);
-        
-        // If match with plain password, update to hashed version
-        if (isMatch) {
-          // Update to hashed password for future logins
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(password, salt);
-          await user.save();
-        }
-      }
-      
+      // Check password using bcrypt
+      const isMatch = await user.comparePassword(password);
+
       if (!isMatch) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
@@ -146,7 +133,7 @@ app.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Protected route - requires authentication and validation
+// Protected route - requires authentication, tracks creator for audit purposes
 app.post("/add", authenticateToken, validateProduct, async (req, res) => {
   try {
     const productData = {
@@ -195,26 +182,17 @@ app.get("/search/:key", async (req, res) => {
 });
 
 app.patch("/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
+  // Any authenticated user can update any product
   try {
     const { id } = req.params;
     const { name, price, category, company, stock } = req.body;
 
-    // Find the product and verify ownership
+    // Find the product
     const product = await Product.findById(id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-
-    // Log product ownership details for debugging
-    console.log('Product update - Product ID:', id);
-    console.log('Product update - Product userid:', product.userid);
-    console.log('Product update - Current user:', req.user.id);
-
-    // Verify the user owns this product - temporarily disabled for testing
-    // if (product.userid && product.userid.toString() !== req.user.id) {
-    //   return res.status(403).json({ message: "Not authorized to update this product" });
-    // }
 
     // Update the product
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -242,32 +220,22 @@ app.get("/product/:id", validateProductId, async (req, res) => {
     
     res.json(product);
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching product:", error);
     res.status(500).json({ msg: "Error fetching product" });
   }
 });
 
-// Add delete endpoint
+// Add delete endpoint - any authenticated user can delete any product
 app.delete("/delete/:id", authenticateToken, validateProductId, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Find the product first to check ownership
+    // Find the product
     const product = await Product.findById(id);
-    
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    
-    // Log product ownership details for debugging
-    console.log('Product delete - Product ID:', id);
-    console.log('Product delete - Product userid:', product.userid);
-    console.log('Product delete - Current user:', req.user.id);
-    
-    // Verify the user owns this product - temporarily disabled for testing
-    // if (product.userid && product.userid.toString() !== req.user.id) {
-    //   return res.status(403).json({ message: "Not authorized to delete this product" });
-    // }
     
     // Delete the product
     await Product.findByIdAndDelete(id);

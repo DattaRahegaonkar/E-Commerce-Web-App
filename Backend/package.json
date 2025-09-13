@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "demo-data": "node demo-data.js",
+    "demo-data:clear": "node demo-data.js --clear",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

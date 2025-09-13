@@ -1,8 +1,11 @@
 // Backend/middleware/auth.js
 const jwt = require('jsonwebtoken');
 
-// Use environment variable or fallback to default (only for development)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+// Require JWT_SECRET environment variable
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required for security');
+}
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 /**
