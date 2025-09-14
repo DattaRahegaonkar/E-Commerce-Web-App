@@ -117,12 +117,11 @@ npm run demo-data
 │   ├── index.js         # Main server file
 │   └── demo-data.js     # Sample data script
 ├── Frontend/
-│   ├── src/
-│   │   ├── Components/  # React components
-│   │   └── App.jsx      # Main app component
-│   └── public/
-├── kubernetes/          # K8s deployment files
-└── docker-compose.yml   # Docker configuration
+    ├── src/
+    │   ├── Components/  # React components
+    │   └── App.jsx      # Main app component
+    └── public/
+
 ```
 
 ## Docker Deployment
@@ -140,6 +139,7 @@ docker volume create ecommerce-volume
 ```bash
 docker run -d \
   --name mongodb \
+  --restart unless-stopped \
   --network ecommerce-network \
   -v ecommerce-volume:/data/db \
   -e MONGO_INITDB_ROOT_USERNAME=root \
@@ -182,8 +182,8 @@ docker build --no-cache -t ecommerce-backend .
 ```bash
 docker run -d \
   --name backend \
+  --restart unless-stopped \
   --network ecommerce-network \
-  -p 8081:8081 \
   --env-file .env \
   ecommerce-backend:latest
 ```
@@ -197,6 +197,24 @@ docker logs -f backend  # Follow logs in real-time
 
 ### 3. Frontend Container Setup
 
+#### Nginx Configuration for React App
+Create `Frontend/nginx.conf`:
+```nginx
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    gzip on;
+    gzip_types text/plain application/xml application/json text/css application/javascript image/svg+xml;
+}
+```
+
 #### Build Frontend Image
 ```bash
 cd Frontend
@@ -207,8 +225,8 @@ docker build --no-cache -t ecommerce-frontend .
 ```bash
 docker run -d \
   --name frontend \
+  --restart unless-stopped \
   --network ecommerce-network \
-  -p 3000:80 \
   --env-file .env \
   ecommerce-frontend:latest
 ```
@@ -218,7 +236,6 @@ docker run -d \
 docker logs frontend
 docker logs -f frontend  # Follow logs in real-time
 ```
-
 
 ### 4. Verification
 
@@ -233,13 +250,66 @@ db.users.find().pretty()
 db.products.find().pretty()
 ```
 
-#### Test API Endpoints
+### 5. Nginx Reverse Proxy Setup
+
+#### Create Nginx Configuration
 ```bash
-# Health check
-curl http://localhost:8081/show
+# Create nginx directory
+mkdir -p nginx
 ```
 
-### 5. Container Management
+Create `nginx/nginx.conf`:
+```nginx
+upstream frontend {
+    server frontend:80;
+}
+
+upstream backend {
+    server backend:8081;
+}
+
+server {
+    listen 80;
+    server_name _;
+    
+    # API routes to backend
+    location ~ ^/(show|signup|login|logout|add|product|search|delete|update|health)(/.*)?$ {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header Origin http://localhost;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Frontend routes
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+#### Run Nginx Reverse Proxy
+```bash
+docker run -d \
+  --name nginx-reverse \
+  --network ecommerce-network \
+  -p 80:80 \
+  -v $(pwd)/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
+  nginx:alpine
+```
+
+#### Access Application
+- **Frontend**: http://localhost
+- **API**: http://localhost/show, http://localhost/login, etc.
+- **All routes**: Automatically proxied to correct container
+
+
+### 6. Container Management
 
 #### Stop Containers
 ```bash
