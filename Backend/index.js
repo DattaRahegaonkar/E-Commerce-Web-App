@@ -19,25 +19,18 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ['http://localhost:5173', 'https://ecommercesignuplogin.netlify.app']; // fallback
 
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if(!origin) return callback(null, true);
-
-    if(allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      // In development, allow all origins; in production, restrict to allowed origins
-      if(process.env.NODE_ENV === 'production') {
-        callback(new Error('Not allowed by CORS'));
-      } else {
-        callback(null, true); // Allow all origins in development
-      }
-    }
-  },
+  origin: true, // Allow all origins
   methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Debug CORS
+app.use((req, res, next) => {
+  console.log('Request Origin:', req.headers.origin);
+  console.log('Request Method:', req.method);
+  next();
+});
 
 app.get("/", (req, res) => {
   res.send("App Running !!!")
