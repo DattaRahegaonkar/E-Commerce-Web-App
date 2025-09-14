@@ -275,7 +275,7 @@ server {
 #### Run Nginx Reverse Proxy
 ```bash
 docker run -d \
-  --name nginx-reverse \
+  --name nginx \
   --network ecommerce-network \
   -p 80:80 \
   -v $(pwd)/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
@@ -337,3 +337,4 @@ docker rmi ecommerce-frontend ecommerce-backend
                                └─────────────┘     └─────────────┘
 
 ```
+
