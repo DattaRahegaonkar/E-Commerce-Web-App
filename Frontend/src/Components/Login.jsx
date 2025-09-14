@@ -27,7 +27,7 @@ const Login = () => {
     }
 
     try {
-      let result = await fetch(`${apiBaseUrl}/login`, {
+      let result = await fetch(`${apiBaseUrl}/api/login`, {
         method: "post",
         body: JSON.stringify({ email, password }),
         headers: { "Content-Type": "application/json" },

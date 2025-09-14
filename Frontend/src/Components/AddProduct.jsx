@@ -90,7 +90,7 @@ const AddProduct = () => {
         userid
       };
       
-      const response = await fetch(`${apiBaseUrl}/add`, {
+      const response = await fetch(`${apiBaseUrl}/api/add`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

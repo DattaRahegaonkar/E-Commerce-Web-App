@@ -34,7 +34,7 @@ const ProductSearch = ({ onResults, onLoading }) => {
         limit: 20
       });
 
-      const response = await fetch(`${apiBaseUrl}/search/${encodeURIComponent(term)}?${params}`);
+      const response = await fetch(`${apiBaseUrl}/api/search/${encodeURIComponent(term)}?${params}`);
       const data = await response.json();
       
       onResults(data.products || []);

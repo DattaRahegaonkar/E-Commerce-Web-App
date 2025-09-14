@@ -11,7 +11,7 @@ const Product = () => {
 
   async function ShowProducts() {
     try {
-      const response = await fetch(`${apiBaseUrl}/show`, {
+      const response = await fetch(`${apiBaseUrl}/api/show`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: 'include' // Add credentials to include cookies with JWT token
@@ -38,7 +38,7 @@ const Product = () => {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/delete/${productId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/delete/${productId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +76,7 @@ const Product = () => {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/search/${searchTerm}`, {
+      const response = await fetch(`${apiBaseUrl}/api/search/${searchTerm}`, {
         credentials: 'include' // Add credentials to include cookies with JWT token
       });
       if (response.ok) {

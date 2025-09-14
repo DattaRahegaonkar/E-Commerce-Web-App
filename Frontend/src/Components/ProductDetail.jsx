@@ -14,7 +14,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/product/${id}`, {
+        const response = await fetch(`${apiBaseUrl}/api/product/${id}`, {
           credentials: 'include'
         });
 
@@ -47,7 +47,7 @@ const ProductDetail = () => {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/delete/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/api/delete/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

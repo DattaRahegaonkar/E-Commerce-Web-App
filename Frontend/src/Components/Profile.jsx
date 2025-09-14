@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import profilePic from "../assets/profile_pic.jpg";
 
 const Profile = () => {
   const auth = JSON.parse(localStorage.getItem("user"));
@@ -26,7 +27,7 @@ const Profile = () => {
           <div className="w-32 h-32 mx-auto border-4 border-purple-500 rounded-full overflow-hidden flex justify-center items-center mb-4">
             <img 
               className="w-full h-full object-cover" 
-              src="src/assets/profile_pic.jpg" 
+              src={profilePic} 
               alt="Profile" 
             />
           </div>

@@ -76,7 +76,7 @@ const UpdateProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/product/${id}`, {
+        const response = await fetch(`${apiBaseUrl}/api/product/${id}`, {
           credentials: 'include'
         });
 
@@ -125,7 +125,7 @@ const UpdateProduct = () => {
         stock: parseInt(formData.stock)
       };
 
-      const response = await fetch(`${apiBaseUrl}/update/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/api/update/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
