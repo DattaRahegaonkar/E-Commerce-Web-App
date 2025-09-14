@@ -36,9 +36,9 @@ app.get("/", (req, res) => {
   res.send("App Running !!!")
 })
 
-app.get("/health", (req, res) => res.send("OK"));
+app.get("/api/health", (req, res) => res.send("OK"));
 
-app.post("/signup", validateSignup, async (req, res) => {
+app.post("/api/signup", validateSignup, async (req, res) => {
   try {
     let { email } = req.body;
 
@@ -73,7 +73,7 @@ app.post("/signup", validateSignup, async (req, res) => {
   }
 });
 
-app.post("/login", validateLogin, async (req, res) => {
+app.post("/api/login", validateLogin, async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -117,7 +117,7 @@ app.post("/login", validateLogin, async (req, res) => {
 });
 
 // Add logout endpoint
-app.post("/logout", (req, res) => {
+app.post("/api/logout", (req, res) => {
   res.cookie('token', '', {
     httpOnly: true,
     expires: new Date(0)
@@ -127,7 +127,7 @@ app.post("/logout", (req, res) => {
 });
 
 // Protected route - requires authentication, tracks creator for audit purposes
-app.post("/add", authenticateToken, validateProduct, async (req, res) => {
+app.post("/api/add", authenticateToken, validateProduct, async (req, res) => {
   try {
     const productData = {
       ...req.body,
@@ -144,7 +144,7 @@ app.post("/add", authenticateToken, validateProduct, async (req, res) => {
   }
 });
 
-app.get("/show", async (req, res) => {
+app.get("/api/show", async (req, res) => {
 
   let products = await Product.find({});
 
@@ -152,7 +152,7 @@ app.get("/show", async (req, res) => {
 
 });
 
-app.get("/search/:key", async (req, res) => {
+app.get("/api/search/:key", async (req, res) => {
   let result = await Product.find({
     $or: [
       {
@@ -174,7 +174,7 @@ app.get("/search/:key", async (req, res) => {
   res.send(result);
 });
 
-app.patch("/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
+app.patch("/api/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
   // Any authenticated user can update any product
   try {
     const { id } = req.params;
@@ -201,8 +201,10 @@ app.patch("/update/:id", authenticateToken, validateProductId, validateProduct, 
   }
 });
 
+// Handle GET requests to /update/:id - redirect to frontend
+
 // Add endpoint to get a single product by ID
-app.get("/product/:id", validateProductId, async (req, res) => {
+app.get("/api/product/:id", validateProductId, async (req, res) => {
   try {
     const { id } = req.params;
     const product = await Product.findById(id);
@@ -218,8 +220,65 @@ app.get("/product/:id", validateProductId, async (req, res) => {
   }
 });
 
+// Add API prefix routes for cleaner separation
+app.get("/api/product/:id", validateProductId, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+    
+    res.json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ msg: "Error fetching product" });
+  }
+});
+
+app.patch("/api/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, category, company, stock } = req.body;
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { name, price, category, company, stock },
+      { new: true }
+    );
+
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error("Update product error:", error);
+    res.status(500).json({ message: "Error updating product" });
+  }
+});
+
+app.delete("/api/delete/:id", authenticateToken, validateProductId, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    await Product.findByIdAndDelete(id);
+    res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    res.status(500).json({ message: "Error deleting product" });
+  }
+});
+
 // Add delete endpoint - any authenticated user can delete any product
-app.delete("/delete/:id", authenticateToken, validateProductId, async (req, res) => {
+app.delete("/api/delete/:id", authenticateToken, validateProductId, async (req, res) => {
   try {
     const { id } = req.params;
     
