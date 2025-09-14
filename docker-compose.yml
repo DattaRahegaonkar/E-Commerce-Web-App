@@ -12,6 +12,11 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root123
       MONGO_INITDB_DATABASE: ecommerceDB
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   backend:
     image: dattarahegaonkar09/ecommerce-backend:latest
@@ -22,7 +27,13 @@ services:
     env_file:
       - ./Backend/.env
     depends_on:
-      - mongodb
+      - mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"] # Adjust the endpoint as necessary
+      interval: 30s
+      timeout: 10s
+      retries: 5
     
   frontend:
     image: dattarahegaonkar09/ecommerce-frontend:latest
@@ -33,7 +44,14 @@ services:
     env_file:
       - ./Frontend/.env
     depends_on:
-      - backend
+      - backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"] # Adjust the endpoint as necessary
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 
   nginx:
     image: nginx:latest
@@ -44,7 +62,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /home/rahegaonkardatta/devops/E-Commerce-Web-App/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /root/E-Commerce-Web-App/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
     depends_on:
       - frontend
