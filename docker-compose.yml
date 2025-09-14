@@ -1,0 +1,59 @@
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    networks:
+      - ecommerce-network
+    volumes:
+      - ecommerce-volume:/data/db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root123
+      MONGO_INITDB_DATABASE: ecommerceDB
+
+  backend:
+    image: dattarahegaonkar09/ecommerce-backend:latest
+    container_name: backend
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      - mongodb
+    
+  frontend:
+    image: dattarahegaonkar09/ecommerce-frontend:latest
+    container_name: frontend
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    env_file:
+      - ./Frontend/.env
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    networks:
+      - ecommerce-network
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/rahegaonkardatta/devops/E-Commerce-Web-App/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+
+
+networks:
+  ecommerce-network:
+    external: true
+
+volumes:
+  ecommerce-volume:
