@@ -50,8 +50,8 @@ MONGO_URI=mongodb://localhost:27017/userdb
 JWT_SECRET=your-secure-jwt-secret-key
 JWT_EXPIRES_IN=7d
 NODE_ENV=development
-ALLOWED_ORIGINS=http://localhost:5173
-PORT=3000
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80,http://localhost
+PORT=8081
 ```
 
 #### Frontend (.env)
@@ -60,7 +60,7 @@ cp .env.example .env
 ```
 OR
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:80
 ```
 
 
@@ -88,11 +88,6 @@ cd Backend
 npm run demo-data
 ```
 
-**Sample Login Credentials:**0
-- `john@example.com` / `password123`
-- `jane@example.com` / `password123`
-- `alice@example.com` / `password123`
-
 ## API Endpoints
 
 ### Authentication
@@ -107,22 +102,6 @@ npm run demo-data
 - `PATCH /update/:id` - Update product (protected)
 - `DELETE /delete/:id` - Delete product (protected)
 - `GET /search/:key` - Search products
-
-## Project Structure
-
-```
-├── Backend/
-│   ├── db/              # Database models
-│   ├── middleware/      # Auth & validation
-│   ├── index.js         # Main server file
-│   └── demo-data.js     # Sample data script
-├── Frontend/
-    ├── src/
-    │   ├── Components/  # React components
-    │   └── App.jsx      # Main app component
-    └── public/
-
-```
 
 ## Docker Deployment
 
