@@ -80,7 +80,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
-                placeholder="you@example.com"
+                placeholder="you@gmail.com"
                 id="email"
                 className="w-full p-3 rounded-lg bg-[#0f172a] border border-gray-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               />
