@@ -1,5 +1,5 @@
-// Fallback to localhost if environment variable is not set
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use environment variable or empty string for relative URLs
+const apiBaseUrl = import.meta.env.VITE_API_URL || '';
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
