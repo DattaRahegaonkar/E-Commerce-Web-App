@@ -185,13 +185,22 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' http://72.60.111.1;" always;
+
     location / {
-        try_files $uri /index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' http://72.60.111.1;" always;
     }
 
     gzip on;
     gzip_types text/plain application/xml application/json text/css application/javascript image/svg+xml;
 }
+
 ```
 
 #### Build Frontend Image
@@ -251,17 +260,17 @@ server {
     listen 80;
     server_name _;
     
-    # API routes to backend
-    location ~ ^/(show|signup|login|logout|add|product|search|delete|update|health)(/.*)?$ {
+    # All API routes go to backend
+    location /api/ {
         proxy_pass http://backend;
         proxy_set_header Host $host;
-        proxy_set_header Origin http://localhost;
+        proxy_set_header Origin http://72.60.111.1;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
     
-    # Frontend routes
+    # Everything else goes to frontend (React SPA)
     location / {
         proxy_pass http://frontend;
         proxy_set_header Host $host;
@@ -270,6 +279,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
 ```
 
 #### Run Nginx Reverse Proxy
@@ -338,3 +348,44 @@ docker rmi ecommerce-frontend ecommerce-backend
 
 ```
 
+
+## Docker Compose Deployment
+
+### Prerequisites
+```bash
+# Create Docker network and volume
+docker network create ecommerce-network
+docker volume create ecommerce-volume
+```
+
+### Quick Deployment
+```bash
+# Clone and navigate to project
+git clone <repository-url>
+cd E-Commerce-Web-App
+
+# Deploy with Docker Compose
+docker compose up -d
+```
+
+### Configuration Files Required
+- `Backend/.env` - Backend environment variables
+- `Frontend/.env` - Frontend environment variables  
+- `nginx/nginx.conf` - Nginx reverse proxy configuration
+
+
+### Access Application
+- **Frontend**: http://localhost
+- **API Health**: http://localhost/api/health
+
+### Management Commands
+```bash
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+
+# Rebuild and restart
+docker compose up -d --build
+```

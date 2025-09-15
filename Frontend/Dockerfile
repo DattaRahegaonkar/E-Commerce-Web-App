@@ -33,7 +33,7 @@ RUN npm run build
 # ------------ Deploy Stage -------------
 
 # Use a lightweight Nginx image to serve the built app
-FROM nginx:alpine AS runtime
+FROM nginx:1.27-alpine AS runtime
 
 # Copy the built app from the builder stage to Nginx's default HTML directory
 COPY --from=builder /app/dist /usr/share/nginx/html
