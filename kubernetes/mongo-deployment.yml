@@ -35,8 +35,8 @@ spec:
               memory: "140Mi"
               cpu: "5m"
             limits:
-              memory: "250Mi"
-              cpu: "50m"
+              memory: "590Mi"
+              cpu: "500m"
       volumes:
         - name: mongo-storage
           persistentVolumeClaim:
