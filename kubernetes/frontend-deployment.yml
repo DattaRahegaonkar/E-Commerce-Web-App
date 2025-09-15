@@ -1,0 +1,33 @@
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: frontend-deployment
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      name: frontend-pod
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: dattarahegaonkar09/ecommerce-frontend:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_API_URL
+              value: http://backend-service:8081
+          resources:
+            requests:
+              memory: "40Mi"
+              cpu: "5m"
+            limits:
+              memory: "200Mi"
+              cpu: "50m"
+      restartPolicy: Always

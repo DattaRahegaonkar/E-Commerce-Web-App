@@ -1,0 +1,43 @@
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: backend-deployment
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      name: backend-pod
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: dattarahegaonkar09/ecommerce-backend:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: MONGO_URI
+              value: mongodb://ecommerceuser:ecommerce123@mongo-service:27017/ecommerceDB
+            - name: PORT
+              value: "8081"
+            - name: JWT_SECRET
+              value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTc1Nzc0NjgwMCwiaWF0IjoxNzU3NzQ2ODAwfQ.wtfA7KbPNa3UFjr25KbWSvZS5JmsI1AixkH8pzLCkyU
+            - name: JWT_EXPIRES_IN
+              value: 7d
+            - name: ALLOWED_ORIGINS
+              value: http://localhost:5173,http://localhost:80,http://localhost,http://72.60.111.1:80,http://72.60.111.1/
+            - name: NODE_ENV
+              value: deployment
+          resources:
+            requests:
+              memory: "40Mi"
+              cpu: "5m"
+            limits:
+              memory: "200Mi"
+              cpu: "50m"
+      restartPolicy: Always
