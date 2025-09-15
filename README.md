@@ -369,8 +369,10 @@ docker compose up -d
 ```
 
 ### Configuration Files Required
+- `database/.env` - database environment variables
 - `Backend/.env` - Backend environment variables
-- `Frontend/.env` - Frontend environment variables  
+- `Frontend/.env` - Frontend environment variables
+- `Frontend/nginc.conf` - Nginx to serve the static files
 - `nginx/nginx.conf` - Nginx reverse proxy configuration
 
 
