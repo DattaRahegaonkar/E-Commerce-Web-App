@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ShoppingCart, Zap } from "lucide-react";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 
@@ -10,6 +11,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -32,9 +34,17 @@ const ProductDetail = () => {
       }
     };
 
+    const getUserData = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+    };
+
     if (id) {
       fetchProduct();
     }
+    getUserData();
   }, [id]);
 
   const handleEdit = () => {
@@ -73,6 +83,72 @@ const ProductDetail = () => {
     } catch (error) {
       console.error('Delete error:', error);
       alert(`Error: ${error.message || 'Failed to delete product'}`);
+    }
+  };
+
+  const addToCart = async () => {
+    if (!user) {
+      alert('Please login to add items to cart');
+      navigate('/login');
+      return;
+    }
+
+    if (product.stock <= 0) {
+      alert('This product is out of stock');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/cart/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: id }),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Product added to cart successfully!');
+      } else {
+        alert(result.message || 'Failed to add product to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add product to cart');
+    }
+  };
+
+  const buyNow = async () => {
+    if (!user) {
+      alert('Please login to purchase this product');
+      navigate('/login');
+      return;
+    }
+
+    if (product.stock <= 0) {
+      alert('This product is out of stock');
+      return;
+    }
+
+    // Add to cart first, then redirect to checkout
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/cart/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: id }),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        navigate('/checkout');
+      } else {
+        const result = await response.json();
+        alert(result.message || 'Failed to add product to cart');
+      }
+    } catch (error) {
+      console.error('Error in buy now:', error);
+      alert('Failed to process purchase');
     }
   };
 
@@ -237,24 +313,51 @@ const ProductDetail = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleEdit}
-                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition"
-                >
-                  Edit Product
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleDelete}
-                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition"
-                >
-                  Delete Product
-                </motion.button>
-              </div>
+              {user?.role === 'admin' ? (
+                // Admin buttons
+                <div className="flex gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleEdit}
+                    className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition"
+                  >
+                    Edit Product
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleDelete}
+                    className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition"
+                  >
+                    Delete Product
+                  </motion.button>
+                </div>
+              ) : (
+                // Customer buttons
+                <div className="flex gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={addToCart}
+                    disabled={product.stock <= 0}
+                    className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold transition flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart size={20} />
+                    {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={buyNow}
+                    disabled={product.stock <= 0}
+                    className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold transition flex items-center justify-center gap-2"
+                  >
+                    <Zap size={20} />
+                    {product.stock <= 0 ? 'Out of Stock' : 'Buy Now'}
+                  </motion.button>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

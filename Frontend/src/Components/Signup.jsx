@@ -7,6 +7,7 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
   const [error, setError] = useState("");
   const [fill, setFill] = useState(false);
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Signup = () => {
     try {
       let result = await fetch(`${apiBaseUrl}/api/signup`, {
         method: "post",
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role }),
         headers: { "Content-Type": "application/json" },
         credentials: 'include' // Important for cookies to work
       });
@@ -134,6 +135,37 @@ const Signup = () => {
               {fill && !password && (
                 <p className="text-red-500 mt-1 text-sm">Enter the password</p>
               )}
+            </div>
+
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-3">
+                I am a:
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="user"
+                    checked={role === "user"}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="mr-3 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-white">Customer - I want to browse and buy products</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="admin"
+                    checked={role === "admin"}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="mr-3 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-white">Admin - I want to manage products and orders</span>
+                </label>
+              </div>
             </div>
 
             {/* Button */}

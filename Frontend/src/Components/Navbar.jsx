@@ -1,22 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react"; // Import icons for mobile menu
+import { Menu, X, ShoppingCart } from "lucide-react";
+import Cart from "./Cart";
 import "./Navbar.css";
+
+const apiBaseUrl = import.meta.env.VITE_API_URL;
 
 const Navbar = () => {
   const auth = localStorage.getItem("user");
+  const user = auth ? JSON.parse(auth) : null;
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [cartItemsCount, setCartItemsCount] = useState(0);
+  const [showCart, setShowCart] = useState(false);
 
   const logout = () => {
     localStorage.clear();
     navigate("/signup");
   };
 
+  useEffect(() => {
+    if (auth) {
+      fetchCartCount();
+    }
+  }, [auth]);
+
+  const fetchCartCount = async () => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/cart`, {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const cartData = await response.json();
+        const totalItems = cartData.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        setCartItemsCount(totalItems);
+      }
+    } catch (error) {
+      console.error('Error fetching cart count:', error);
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     setSearch("");
+  };
+
+  const toggleCart = () => {
+    setShowCart(!showCart);
   };
 
   return (
@@ -38,9 +70,21 @@ const Navbar = () => {
                 <NavLink to="/" className="nav-link text-gray-200 hover:text-purple-400">
                   Products
                 </NavLink>
-                <NavLink to="/add" className="nav-link text-gray-200 hover:text-purple-400">
-                  Add Product
-                </NavLink>
+                {user?.role === 'admin' && (
+                  <>
+                    <NavLink to="/add" className="nav-link text-gray-200 hover:text-purple-400">
+                      Add Product
+                    </NavLink>
+                    <NavLink to="/admin" className="nav-link text-blue-400 hover:text-blue-300">
+                      Admin Dashboard
+                    </NavLink>
+                  </>
+                )}
+                {user?.role !== 'admin' && (
+                  <NavLink to="/orders" className="nav-link text-gray-200 hover:text-purple-400">
+                    Orders
+                  </NavLink>
+                )}
                 <NavLink to="/profile" className="nav-link text-gray-200 hover:text-purple-400">
                   Profile
                 </NavLink>
@@ -49,7 +93,7 @@ const Navbar = () => {
                   className="nav-link text-red-400 hover:text-red-500 font-semibold"
                   onClick={logout}
                 >
-                  Logout ({JSON.parse(auth).name})
+                  Logout ({user?.name})
                 </NavLink>
               </>
             ) : (
@@ -88,6 +132,23 @@ const Navbar = () => {
             </div>
           )}
 
+          {/* Cart Icon - Only for Customers */}
+          {auth && user?.role === 'user' && (
+            <div className="relative">
+              <button
+                onClick={toggleCart}
+                className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors relative"
+              >
+                <ShoppingCart size={20} className="text-gray-200" />
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Mobile Menu Button */}
           <button
             className="md:hidden text-gray-300 hover:text-white transition-colors p-1"
@@ -106,9 +167,21 @@ const Navbar = () => {
               <NavLink to="/" className="block nav-link text-gray-200 hover:text-purple-400">
                 Products
               </NavLink>
-              <NavLink to="/add" className="block nav-link text-gray-200 hover:text-purple-400">
-                Add Product
-              </NavLink>
+              {user?.role === 'admin' && (
+                <>
+                  <NavLink to="/add" className="block nav-link text-gray-200 hover:text-purple-400">
+                    Add Product
+                  </NavLink>
+                  <NavLink to="/admin" className="block nav-link text-blue-400 hover:text-blue-300">
+                    Admin Dashboard
+                  </NavLink>
+                </>
+              )}
+              {user?.role !== 'admin' && (
+                <NavLink to="/orders" className="block nav-link text-gray-200 hover:text-purple-400">
+                  Orders
+                </NavLink>
+              )}
               <NavLink to="/profile" className="block nav-link text-gray-200 hover:text-purple-400">
                 Profile
               </NavLink>
@@ -117,7 +190,7 @@ const Navbar = () => {
                 className="block nav-link text-red-400 hover:text-red-500 font-semibold"
                 onClick={logout}
               >
-                Logout ({JSON.parse(auth).name})
+                Logout ({user?.name})
               </NavLink>
             </>
           ) : (
@@ -135,6 +208,9 @@ const Navbar = () => {
           )}
         </div>
       )}
+
+      {/* Cart Component */}
+      <Cart isOpen={showCart} onClose={() => setShowCart(false)} />
     </nav>
   );
 };

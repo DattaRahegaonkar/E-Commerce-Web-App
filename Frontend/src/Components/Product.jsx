@@ -4,9 +4,12 @@ const apiBaseUrl = import.meta.env.VITE_API_URL || '';
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { ShoppingCart, Plus } from "lucide-react";
 
 const Product = () => {
   const [all, setAll] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   async function ShowProducts() {
@@ -26,7 +29,40 @@ const Product = () => {
 
   useEffect(() => {
     ShowProducts();
+    getUserData();
   }, []);
+
+  const getUserData = () => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  };
+
+  const addToCart = async (productId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/cart/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId }),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Product added to cart successfully!');
+      } else {
+        alert(result.message || 'Failed to add product to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add product to cart');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = (productId) => {
     navigate(`/update/${productId}`);
@@ -170,30 +206,48 @@ const Product = () => {
                   by {product.company}
                 </p>
 
-                {/* Action Buttons - Hidden by default, show on hover */}
+                {/* Action Buttons - Show based on user role */}
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(product._id);
-                    }}
-                    className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition"
-                  >
-                    Edit
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(product._id);
-                    }}
-                    className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition"
-                  >
-                    Delete
-                  </motion.button>
+                  {user?.role === 'admin' ? (
+                    <>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(product._id);
+                        }}
+                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition"
+                      >
+                        Edit
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(product._id);
+                        }}
+                        className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition"
+                      >
+                        Delete
+                      </motion.button>
+                    </>
+                  ) : (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product._id);
+                      }}
+                      disabled={loading || product.stock <= 0}
+                      className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white text-sm font-medium transition flex items-center justify-center"
+                    >
+                      <ShoppingCart size={16} className="mr-2" />
+                      {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                    </motion.button>
+                  )}
                 </div>
               </div>
             </motion.div>

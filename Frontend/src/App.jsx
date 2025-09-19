@@ -13,6 +13,12 @@ import NotFound from "./Components/NotFound";
 import SignUp from "./Components/Signup";
 import PrivateComponent from "./Components/PrivateComponent";
 import Login from "./Components/Login";
+import Cart from "./Components/Cart";
+import Checkout from "./Components/Checkout";
+import OrderConfirmation from "./Components/OrderConfirmation";
+import OrderHistory from "./Components/OrderHistory";
+import PaymentPage from "./Components/PaymentPage";
+import AdminDashboard from "./Components/AdminDashboard";
 
 const router = createBrowserRouter([
   {
@@ -90,7 +96,61 @@ const router = createBrowserRouter([
           </div>
         ),
       },
+      {
+        path: "/cart",
+        element: (
+          <div>
+            <Navbar />
+            <Cart />
+          </div>
+        ),
+      },
+      {
+        path: "/checkout",
+        element: (
+          <div>
+            <Navbar />
+            <Checkout />
+          </div>
+        ),
+      },
+      {
+        path: "/payment/:orderId",
+        element: (
+          <div>
+            <Navbar />
+            <PaymentPage />
+          </div>
+        ),
+      },
+      {
+        path: "/order-confirmation/:orderId",
+        element: (
+          <div>
+            <Navbar />
+            <OrderConfirmation />
+          </div>
+        ),
+      },
+      {
+        path: "/orders",
+        element: (
+          <div>
+            <Navbar />
+            <OrderHistory />
+          </div>
+        ),
+      },
     ],
+  },
+  {
+    path: "/admin",
+    element: (
+      <div>
+        <Navbar />
+        <AdminDashboard />
+      </div>
+    ),
   },
   {
     path: "*",
