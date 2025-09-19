@@ -17,7 +17,10 @@ services:
       retries: 5
 
   backend:
-    image: dattarahegaonkar09/ecommerce-backend:latest
+    # image: dattarahegaonkar09/ecommerce-backend:latest
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
     container_name: backend
     networks:
       - ecommerce-network
@@ -27,13 +30,16 @@ services:
     depends_on:
       - mongodb
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"] # Adjust the endpoint as necessary
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/health"] # Adjust the endpoint as necessary
       interval: 30s
       timeout: 10s
       retries: 5
     
   frontend:
-    image: dattarahegaonkar09/ecommerce-frontend:latest
+    # image: dattarahegaonkar09/ecommerce-frontend:latest
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
     container_name: frontend
     networks:
       - ecommerce-network
@@ -43,7 +49,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"] # Adjust the endpoint as necessary
+      test: ["CMD", "curl", "-f", "http://localhost:80"] # Adjust the endpoint as necessary
       interval: 30s
       timeout: 10s
       retries: 5
