@@ -15,78 +15,206 @@ const Product = require('./db/Product');
 // Sample data
 const sampleUsers = [
   {
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: 'admin123',
+    role: 'admin'
+  },
+  {
     name: 'John Doe',
     email: 'john@example.com',
-    password: 'password123'
+    password: 'password123',
+    role: 'user'
   },
   {
     name: 'Jane Smith',
     email: 'jane@example.com',
-    password: 'password123'
+    password: 'password123',
+    role: 'user'
   },
   {
     name: 'Alice Johnson',
     email: 'alice@example.com',
-    password: 'password123'
+    password: 'password123',
+    role: 'user'
+  },
+  {
+    name: 'Bob Wilson',
+    email: 'bob@example.com',
+    password: 'password123',
+    role: 'user'
+  },
+  {
+    name: 'Sarah Davis',
+    email: 'sarah@example.com',
+    password: 'password123',
+    role: 'user'
   }
 ];
 
 const sampleProducts = [
+  // Electronics
   {
-    name: 'iPhone 15 Pro',
-    price: 999,
+    name: 'iPhone 15 Pro Max',
+    price: 1199,
     category: 'Electronics',
     company: 'Apple',
-    stock: 50
+    stock: 25,
+    description: 'Latest iPhone with Pro camera system and titanium design'
   },
   {
-    name: 'MacBook Pro 16"',
-    price: 2499,
+    name: 'MacBook Pro 14" M3',
+    price: 1999,
     category: 'Electronics',
     company: 'Apple',
-    stock: 25
+    stock: 15,
+    description: 'Powerful laptop with M3 chip for professional work'
   },
   {
-    name: 'Nike Air Max',
-    price: 129,
-    category: 'Clothing',
-    company: 'Nike',
-    stock: 100
-  },
-  {
-    name: 'Samsung Galaxy S24',
-    price: 799,
+    name: 'Samsung Galaxy S24 Ultra',
+    price: 1299,
     category: 'Electronics',
     company: 'Samsung',
-    stock: 75
+    stock: 30,
+    description: 'Premium Android smartphone with S Pen and advanced camera'
   },
   {
-    name: 'Sony WH-1000XM5',
+    name: 'Sony WH-1000XM5 Wireless Headphones',
     price: 349,
     category: 'Electronics',
     company: 'Sony',
-    stock: 40
+    stock: 45,
+    description: 'Industry-leading noise canceling wireless headphones'
   },
+  {
+    name: 'iPad Pro 12.9"',
+    price: 1099,
+    category: 'Electronics',
+    company: 'Apple',
+    stock: 20,
+    description: 'Professional tablet with M2 chip and Apple Pencil support'
+  },
+
+  // Clothing & Fashion
+  {
+    name: 'Nike Air Max 270',
+    price: 129,
+    category: 'Clothing',
+    company: 'Nike',
+    stock: 80,
+    description: 'Comfortable running shoes with Air Max cushioning'
+  },
+  {
+    name: 'Levi\'s 501 Original Jeans',
+    price: 89,
+    category: 'Clothing',
+    company: 'Levi\'s',
+    stock: 60,
+    description: 'Classic straight fit jeans, the original since 1873'
+  },
+  {
+    name: 'Adidas Ultraboost 23',
+    price: 189,
+    category: 'Clothing',
+    company: 'Adidas',
+    stock: 40,
+    description: 'High-performance running shoes with Boost technology'
+  },
+  {
+    name: 'H&M Cotton T-Shirt',
+    price: 19,
+    category: 'Clothing',
+    company: 'H&M',
+    stock: 150,
+    description: 'Soft cotton t-shirt, perfect for everyday wear'
+  },
+
+  // Books
   {
     name: 'The Great Gatsby',
     price: 12,
     category: 'Books',
     company: 'Penguin Books',
-    stock: 200
+    stock: 100,
+    description: 'Classic American novel by F. Scott Fitzgerald'
   },
   {
-    name: 'Dyson V15 Vacuum',
+    name: 'Atomic Habits',
+    price: 16,
+    category: 'Books',
+    company: 'Avery',
+    stock: 75,
+    description: 'Transform your life with tiny changes in behavior'
+  },
+  {
+    name: 'Dune',
+    price: 18,
+    category: 'Books',
+    company: 'Ace Books',
+    stock: 50,
+    description: 'Epic science fiction novel by Frank Herbert'
+  },
+
+  // Home & Kitchen
+  {
+    name: 'Dyson V15 Detect Vacuum',
     price: 699,
     category: 'Home',
     company: 'Dyson',
-    stock: 15
+    stock: 12,
+    description: 'Powerful cordless vacuum with laser dust detection'
   },
   {
-    name: 'Levi\'s 501 Jeans',
+    name: 'KitchenAid Stand Mixer',
+    price: 379,
+    category: 'Home',
+    company: 'KitchenAid',
+    stock: 8,
+    description: 'Professional 5-quart stand mixer for baking enthusiasts'
+  },
+  {
+    name: 'Instant Pot Duo 7-in-1',
     price: 89,
-    category: 'Clothing',
-    company: 'Levi\'s',
-    stock: 80
+    category: 'Home',
+    company: 'Instant Pot',
+    stock: 25,
+    description: 'Multi-cooker that replaces 7 kitchen appliances'
+  },
+
+  // Sports & Outdoors
+  {
+    name: 'Peloton Bike',
+    price: 2495,
+    category: 'Sports',
+    company: 'Peloton',
+    stock: 5,
+    description: 'Interactive exercise bike with live and on-demand classes'
+  },
+  {
+    name: 'Yoga Mat Premium',
+    price: 49,
+    category: 'Sports',
+    company: 'Manduka',
+    stock: 35,
+    description: 'Non-slip yoga mat with superior cushioning'
+  },
+
+  // Beauty & Personal Care
+  {
+    name: 'Dyson Airwrap Complete',
+    price: 599,
+    category: 'Beauty',
+    company: 'Dyson',
+    stock: 10,
+    description: 'Multi-styling tool for curls, waves, and smoothing'
+  },
+  {
+    name: 'The Ordinary Hyaluronic Acid',
+    price: 7,
+    category: 'Beauty',
+    company: 'The Ordinary',
+    stock: 200,
+    description: 'Hydrating serum with hyaluronic acid for all skin types'
   }
 ];
 
@@ -110,9 +238,13 @@ async function createUsers() {
       const user = new User({
         name: userData.name,
         email: userData.email,
-        password: hashedPassword,
-        role: userData.role || 'user'
+        password: hashedPassword
       });
+
+      // Set role if provided
+      if (userData.role) {
+        user.role = userData.role;
+      }
 
       await user.save();
       console.log(`✅ Created user: ${userData.email}`);
@@ -178,7 +310,7 @@ async function main() {
   try {
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    console.log('✅ Connected to MongoDB for demo data');
 
     // Check command line arguments
     const args = process.argv.slice(2);
@@ -193,16 +325,26 @@ async function main() {
     await createProducts();
 
     console.log('\n🎉 Demo data creation completed!');
-    console.log('\nSample login credentials:');
-    console.log('User 1: john@example.com / password123');
-    console.log('User 2: jane@example.com / password123');
-    console.log('User 3: alice@example.com / password123');
+    console.log('\n📋 Sample login credentials:');
+    console.log('👑 Admin: admin@example.com / admin123');
+    console.log('👤 Users:');
+    console.log('   john@example.com / password123');
+    console.log('   jane@example.com / password123');
+    console.log('   alice@example.com / password123');
+    console.log('   bob@example.com / password123');
+    console.log('   sarah@example.com / password123');
+    console.log('\n🛒 Total products created: 20 across 6 categories');
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('❌ Demo data error:', error.message);
+    process.exit(1);
   } finally {
-    await mongoose.connection.close();
-    console.log('✅ Database connection closed');
+    try {
+      await mongoose.connection.close();
+      console.log('✅ Database connection closed');
+    } catch (closeError) {
+      console.error('❌ Error closing database connection:', closeError.message);
+    }
   }
 }
 
