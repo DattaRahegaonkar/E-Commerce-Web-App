@@ -63,7 +63,6 @@ OR
 VITE_API_URL=http://localhost:80
 ```
 
-
 #### 3. Backend Setup
 ```
 cd Backend
