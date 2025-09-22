@@ -25,30 +25,6 @@ const sampleUsers = [
     email: 'john@example.com',
     password: 'password123',
     role: 'user'
-  },
-  {
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    password: 'password123',
-    role: 'user'
-  },
-  {
-    name: 'Alice Johnson',
-    email: 'alice@example.com',
-    password: 'password123',
-    role: 'user'
-  },
-  {
-    name: 'Bob Wilson',
-    email: 'bob@example.com',
-    password: 'password123',
-    role: 'user'
-  },
-  {
-    name: 'Sarah Davis',
-    email: 'sarah@example.com',
-    password: 'password123',
-    role: 'user'
   }
 ];
 
@@ -219,7 +195,7 @@ const sampleProducts = [
 ];
 
 async function createUsers() {
-  console.log('Creating sample users...');
+  // console.log('Creating sample users...');
 
   for (const userData of sampleUsers) {
     try {
@@ -247,7 +223,7 @@ async function createUsers() {
       }
 
       await user.save();
-      console.log(`✅ Created user: ${userData.email}`);
+      // console.log(`✅ Created user: ${userData.email}`);
     } catch (error) {
       console.error(`❌ Error creating user ${userData.email}:`, error.message);
     }
@@ -296,7 +272,7 @@ async function clearData() {
   try {
     // Clear users created by demo script
     await User.deleteMany({ email: { $in: sampleUsers.map(u => u.email) } });
-    console.log('✅ Cleared sample users');
+    // console.log('✅ Cleared sample users');
 
     // Clear products created by demo script
     await Product.deleteMany({ name: { $in: sampleProducts.map(p => p.name) } });
@@ -325,15 +301,9 @@ async function main() {
     await createProducts();
 
     console.log('\n🎉 Demo data creation completed!');
-    console.log('\n📋 Sample login credentials:');
-    console.log('👑 Admin: admin@example.com / admin123');
-    console.log('👤 Users:');
-    console.log('   john@example.com / password123');
-    console.log('   jane@example.com / password123');
-    console.log('   alice@example.com / password123');
-    console.log('   bob@example.com / password123');
-    console.log('   sarah@example.com / password123');
     console.log('\n🛒 Total products created: 20 across 6 categories');
+
+    console.log('Create New Account of user and admin to check the functionality !');
 
   } catch (error) {
     console.error('❌ Demo data error:', error.message);
