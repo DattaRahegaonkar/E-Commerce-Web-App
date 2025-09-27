@@ -7,8 +7,8 @@ resource "aws_subnet" "baston_subnet" {
     availability_zone = "eu-west-1a"
 
     tags = {
-        Name = "baston_subnet"
-        Environment = "dev"
+        Name = "${var.env}-baston_subnet"
+        Environment = var.env
     }
 
 }
@@ -22,8 +22,8 @@ resource "aws_subnet" "backend_subnet" {
     availability_zone = "eu-west-1a"
 
     tags = {
-        Name = "backend_subnet"
-        Environment = "dev"
+        Name = "${var.env}-backend_subnet"
+        Environment = var.env
     }
 
 }
@@ -36,8 +36,8 @@ resource "aws_subnet" "db_subnet" {
     availability_zone = "eu-west-1a"
 
     tags = {
-        Name = "db_subnet"
-        Environment = "dev"
+        Name = "${var.env}-db_subnet"
+        Environment = var.env
     }
 
 }

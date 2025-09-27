@@ -36,8 +36,8 @@ resource "aws_security_group" "baston_sg" {
     }
 
     tags = {
-        Name = "baston_sg"
-        Environment = "dev"
+        Name = "${var.env}-baston_sg"
+        Environment = var.env
     }
 }
 
@@ -55,6 +55,13 @@ resource "aws_security_group" "backend_sg" {
     security_groups = [aws_security_group.baston_sg.id]
   }
 
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.baston_sg.id]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -63,8 +70,8 @@ resource "aws_security_group" "backend_sg" {
   }
 
   tags = {
-    Name = "backend_sg"
-    Environment = "dev"
+    Name = "${var.env}-backend_sg"
+    Environment = var.env
   }
 }
 
@@ -85,6 +92,13 @@ resource "aws_security_group" "db_sg" {
     security_groups = [aws_security_group.backend_sg.id]
   }
 
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.baston_sg.id]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -93,7 +107,7 @@ resource "aws_security_group" "db_sg" {
   }
 
   tags = {
-    Name = "db_sg"
-    Environment = "dev"
+    Name = "${var.env}-db_sg"
+    Environment = var.env
   }
 }

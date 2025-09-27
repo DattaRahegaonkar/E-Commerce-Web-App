@@ -11,8 +11,8 @@ resource "aws_route_table" "public_route_table" {
     }
 
     tags = {
-        Name = "public_route_table"
-        Environment = "dev"
+        Name = "${var.env}-public_route_table"
+        Environment = var.env
     }
 
 }
@@ -38,8 +38,8 @@ resource "aws_route_table" "private_route_table" {
     }
 
     tags = {
-        Name = "private_route_table"
-        Environment = "dev"
+        Name = "${var.env}-private_route_table"
+        Environment = var.env
     }
 
 }

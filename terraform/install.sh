@@ -1,14 +1,16 @@
-#!/bin/bash
 
+#!/bin/bash
 
 sudo apt update
 
-sudo apt install -y openjdk-17-jdk unzip wget
+sudo apt install -y openjdk-17-jre wget curl git unzip
 
-cd ~ && wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-10.4.1.88267.zip
+sudo apt-get install -y docker.io
 
-unzip sonarqube-10.4.1.88267.zip
+sudo apt-get install -y docker-compose-v2
 
-mv sonarqube-10.4.1.88267 sonarqube
+sudo usermod -aG docker ubuntu
 
-cd /sonarqube/bin/linux-x86-64 && ./sonar.sh start
+newgrp docker
+
+ps -ef | grep agent.jar
