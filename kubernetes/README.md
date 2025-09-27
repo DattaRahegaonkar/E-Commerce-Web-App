@@ -55,7 +55,7 @@ kubectl apply -f namespace.yml
 kubectl apply -f mongo-pv.yml -f mongo-pvc.yml
 
 # Deploy database
-kubectl apply -f mongo-secret.yml -f mongo-deployment.yml -f mongo-service.yml
+kubectl apply -f mongo-deployment.yml -f mongo-service.yml
 ```
 
 ### 4. Create MongoDB Application User
@@ -68,6 +68,7 @@ kubectl exec -it <mongo-pod-name> -n ecommerce -- mongosh -u root -p root123 --a
 
 # Inside MongoDB shell add this user:
 use ecommerceDB
+
 db.createUser({
   user: "ecommerceuser",
   pwd: "ecommerce123",
@@ -82,10 +83,10 @@ exit
 ### 5. Deploy Application Layer
 ```bash
 # Deploy backend
-kubectl apply -f backend-secret.yml -f backend-deployment.yml -f backend-service.yml
+kubectl apply -f backend-deployment.yml -f backend-service.yml
 
 # Deploy frontend
-kubectl apply -f frontend-secret.yml -f frontend-deployment.yml -f frontend-service.yml
+kubectl apply -f frontend-deployment.yml -f frontend-service.yml
 
 # Deploy ingress
 kubectl apply -f ingress.yml

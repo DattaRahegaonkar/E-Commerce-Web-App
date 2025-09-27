@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: dattarahegaonkar09/ecommerce-backend:latest
+          image: dattarahegaonkar09/ecommerce-backend-k8s:latest
           ports:
             - containerPort: 8081
           env:
@@ -30,7 +30,7 @@ spec:
             - name: JWT_EXPIRES_IN
               value: 7d
             - name: ALLOWED_ORIGINS
-              value: http://localhost:5173,http://localhost:80,http://localhost,http://72.60.111.1:80,http://72.60.111.1/
+              value: http://localhost:5173,http://localhost:80,http://localhost,http://72.60.111.1:80,http://72.60.111.1/,http://ecommerce.rahegaonkar.site
             - name: NODE_ENV
               value: deployment
           resources:

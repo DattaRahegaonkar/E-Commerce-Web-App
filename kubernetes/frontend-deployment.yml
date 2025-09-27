@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: dattarahegaonkar09/ecommerce-frontend:latest
+          image: dattarahegaonkar09/ecommerce-frontend-k8s:latest
           ports:
             - containerPort: 80
           env:
