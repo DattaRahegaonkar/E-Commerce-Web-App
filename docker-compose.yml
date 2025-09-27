@@ -17,7 +17,7 @@ services:
       retries: 5
 
   backend:
-    image: dattarahegaonkar09/ecommerce-backend:latest
+    image: dattarahegaonkar09/ecommerce-backend-k8s:latest
     # build:
     #   context: ./Backend
     #   dockerfile: Dockerfile
@@ -36,7 +36,7 @@ services:
       retries: 5
     
   frontend:
-    image: dattarahegaonkar09/ecommerce-frontend:latest
+    image: dattarahegaonkar09/ecommerce-frontend-k8s:latest
     # build:
     #   context: ./Frontend
     #   dockerfile: Dockerfile
