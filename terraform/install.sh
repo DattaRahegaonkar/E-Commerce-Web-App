@@ -1,16 +1,22 @@
 
 #!/bin/bash
 
-sudo apt update
+# sudo apt update
 
-sudo apt install -y openjdk-17-jre wget curl git unzip
+# sudo apt install -y openjdk-17-jre wget curl git unzip
 
-sudo apt-get install -y docker.io
+# sudo apt-get install -y docker.io
 
-sudo apt-get install -y docker-compose-v2
+# sudo apt-get install -y docker-compose-v2
 
-sudo usermod -aG docker ubuntu
+# sudo usermod -aG docker ubuntu
 
-newgrp docker
+# newgrp docker
 
-ps -ef | grep agent.jar
+# ps -ef | grep agent.jar
+
+sudo apt-get install -y nginx
+
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo systemctl status nginx

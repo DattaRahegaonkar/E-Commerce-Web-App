@@ -1,12 +1,16 @@
 
-resource "aws_vpc" "vpc" {
+# --------------------------- Create a VPC ---------------------------
 
-    cidr_block = "10.0.0.0/16"
+resource "aws_vpc" "vpc" {
+    cidr_block = var.vpc_cidr
     instance_tenancy = "default"
+    enable_dns_support = true
+    enable_dns_hostnames = true
 
     tags = {
-        Name = "${var.env}-vpc"
+        Name = "vpc-${var.env}"
         Environment = var.env
+        Terraform   = "true"
     }
-
 }
+

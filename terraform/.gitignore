@@ -1,12 +1,7 @@
 .terraform
-
 .terraform.lock.hcl
-
-terra-key
-terra-key.pub
-
 terraform.tfstate
-
 terraform.tfstate.backup
 
-demo
+eks-key
+eks-key.pub

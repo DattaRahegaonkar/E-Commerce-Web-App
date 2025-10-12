@@ -1,43 +1,57 @@
+# public subnets for eu-west-1a, eu-west-1b
 
-resource "aws_subnet" "baston_subnet" {
+resource "aws_subnet" "public_subnet" {
+
+    for_each = {
+        "1a" = {
+            cidr = var.public_subnets[0]
+            az = var.availability_zones[0]
+        }
+        "1b" = {
+            cidr = var.public_subnets[1]
+            az = var.availability_zones[1]
+        }
+    }
+
     vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.1.0/24"
+    cidr_block = each.value.cidr
     map_public_ip_on_launch = true
 
-    availability_zone = "eu-west-1a"
+    availability_zone = each.value.az
 
     tags = {
-        Name = "${var.env}-baston_subnet"
+        Name = "public-subnet-${each.key}-${var.env}"
         Environment = var.env
+        "kubernetes.io/role/elb"                 = "1"
+        "kubernetes.io/cluster/ecommerce-eks-cluster" = "shared"
     }
-
 }
 
+# private subnets for eu-west-1a, eu-west-1b
 
-resource "aws_subnet" "backend_subnet" {
-    vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.2.0/24"
-    map_public_ip_on_launch = false
+resource "aws_subnet" "private_subnet" {
 
-    availability_zone = "eu-west-1a"
-
-    tags = {
-        Name = "${var.env}-backend_subnet"
-        Environment = var.env
+    for_each = {
+        "1a" = {
+            cidr = var.private_subnets[0]
+            az = var.availability_zones[0]
+        }
+        "1b" = {
+            cidr = var.private_subnets[1]
+            az = var.availability_zones[1]
+        }
     }
 
-}
-
-resource "aws_subnet" "db_subnet" {
     vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.3.0/24"
+    cidr_block = each.value.cidr
     map_public_ip_on_launch = false
 
-    availability_zone = "eu-west-1a"
+    availability_zone = each.value.az
 
     tags = {
-        Name = "${var.env}-db_subnet"
+        Name = "private-subnet-${each.key}-${var.env}"
         Environment = var.env
+        "kubernetes.io/role/internal-elb"        = "1"
+        "kubernetes.io/cluster/ecommerce-eks-cluster" = "shared"
     }
-
 }

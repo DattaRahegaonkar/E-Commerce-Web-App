@@ -1,5 +1,5 @@
 
-# public route table creation
+# --------------------------- public Route Tables ---------------------------
 
 resource "aws_route_table" "public_route_table" {
 
@@ -11,49 +11,50 @@ resource "aws_route_table" "public_route_table" {
     }
 
     tags = {
-        Name = "${var.env}-public_route_table"
+        Name = "public-route-table-${var.env}"
         Environment = var.env
     }
 
 }
 
-resource "aws_route_table_association" "public_route_table_association" {
+resource "aws_route_table_association" "public_route_table_association_1a" {
 
-    subnet_id = aws_subnet.baston_subnet.id
+    for_each = aws_subnet.public_subnet
+
+    subnet_id = each.value.id
     route_table_id = aws_route_table.public_route_table.id
 
 }
 
+# --------------------------- Private Route Tables ---------------------------
 
-# private route table creation
+# Create one private route table for each private subnet
 
+resource "aws_route_table" "private" {
+  for_each = aws_subnet.private_subnet
 
-resource "aws_route_table" "private_route_table" {
+  vpc_id = aws_vpc.vpc.id
 
-    vpc_id = aws_vpc.vpc.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = lookup(
+      {
+        "1a" = aws_nat_gateway.nat_gateway["1a"].id
+        "1b" = aws_nat_gateway.nat_gateway["1b"].id
+      },
+      each.key
+    )
+  }
 
-    route {
-        cidr_block = "0.0.0.0/0"
-        nat_gateway_id = aws_nat_gateway.nat_gateway.id
-    }
-
-    tags = {
-        Name = "${var.env}-private_route_table"
-        Environment = var.env
-    }
-
+  tags = {
+    Name        = "private-rt-${each.key}-${var.env}"
+    Environment = var.env
+  }
 }
 
-resource "aws_route_table_association" "private_route_table_association_1" {
+resource "aws_route_table_association" "private" {
+  for_each = aws_subnet.private_subnet
 
-    subnet_id = aws_subnet.backend_subnet.id
-    route_table_id = aws_route_table.private_route_table.id
-
-}
-
-resource "aws_route_table_association" "private_route_table_association_2" {
-
-    subnet_id = aws_subnet.db_subnet.id
-    route_table_id = aws_route_table.private_route_table.id
-
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private[each.key].id
 }
