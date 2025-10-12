@@ -5,8 +5,8 @@ metadata:
   namespace: ecommerce
 spec:
   rules:
-  - host: ecommerce.rahegaonkar.site
-    http:
+  # - host: ecommerce.rahegaonkar.site
+  - http:
       paths:
       - pathType: Prefix
         path: /api

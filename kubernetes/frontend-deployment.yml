@@ -22,7 +22,7 @@ spec:
             - containerPort: 80
           env:
             - name: VITE_API_URL
-              value: http://backend-service:8081
+              value: /api
           resources:
             requests:
               memory: "40Mi"

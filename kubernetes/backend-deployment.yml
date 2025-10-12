@@ -30,9 +30,9 @@ spec:
             - name: JWT_EXPIRES_IN
               value: 7d
             - name: ALLOWED_ORIGINS
-              value: http://localhost:5173,http://localhost:80,http://localhost,http://72.60.111.1:80,http://72.60.111.1/,http://ecommerce.rahegaonkar.site
+              value: http://localhost:5173,http://localhost:80,http://localhost,http://localhost:8082,http://ecommerce.rahegaonkar.site,http://frontend-service,http://frontend-service:80
             - name: NODE_ENV
-              value: deployment
+              value: development
           resources:
             requests:
               memory: "40Mi"
