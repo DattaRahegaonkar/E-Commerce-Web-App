@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Adding demo data..."
-node demo-data.js
+sh demo-data.js
 
 echo "Starting backend server..."
 node index.js
