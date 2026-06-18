@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "sh entrypoint.sh",
     "dev": "nodemon index.js",
     "demo-data": "node demo-data.js",
     "demo-data:clear": "node demo-data.js --clear",
