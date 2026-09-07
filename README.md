@@ -2,6 +2,9 @@
 
 A full-stack web application featuring secure user authentication and collaborative product management. Built with modern technologies, this app allows authenticated users to manage products with full CRUD operations in a responsive, user-friendly interface.
 
+
+Note : This app state is at the local state, if you have to try with docker, kubernetes then you have to make changes according to mentioned in the readme.md file
+
 ## Tech Stack
 
 ### Frontend
@@ -60,7 +63,7 @@ cp .env.example .env
 ```
 OR
 ```env
-VITE_API_URL=http://localhost:80
+VITE_API_URL=http://localhost:8081
 ```
 
 #### 3. Backend Setup
@@ -86,21 +89,6 @@ Populate your database with sample data for testing:
 cd Backend
 npm run demo-data
 ```
-
-## API Endpoints
-
-### Authentication
-- `POST /signup` - Register new user
-- `POST /login` - User authentication
-- `POST /logout` - User logout
-
-### Products
-- `GET /show` - Get all products
-- `GET /product/:id` - Get specific product
-- `POST /add` - Create product (protected)
-- `PATCH /update/:id` - Update product (protected)
-- `DELETE /delete/:id` - Delete product (protected)
-- `GET /search/:key` - Search products
 
 ## Docker Deployment
 
@@ -150,6 +138,16 @@ exit
 
 ### 2. Backend Container Setup
 
+#### change the `.env` file
+```bash
+MONGO_URI=mongodb://ecommerceuser:ecommerce123@mongodb:27017/ecommerceDB
+JWT_SECRET=your-secure-jwt-secret-key
+JWT_EXPIRES_IN=7d
+NODE_ENV=development
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80,http://<backend-comntainer-name>,http://<backend-comntainer-name>:80,http://localhost
+PORT=8081
+```
+
 #### Build Backend Image
 ```bash
 cd Backend
@@ -181,23 +179,21 @@ Create `Frontend/nginx.conf`:
 server {
     listen 80;
     server_name _;
+
     root /usr/share/nginx/html;
     index index.html;
-
-    add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' http://72.60.111.1;" always;
 
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-        add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' http://72.60.111.1;" always;
     }
 
     gzip on;
-    gzip_types text/plain application/xml application/json text/css application/javascript image/svg+xml;
+    gzip_types text/plain text/css application/javascript application/json;
 }
 
 ```
