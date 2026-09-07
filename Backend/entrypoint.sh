@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "Adding demo data..."
 node demo-data.js
