@@ -45,4 +45,4 @@ USER appuser
 EXPOSE 8081
 
 # Start the application
-CMD ["./entrypoint.sh"]
+CMD ["/bin/sh", "./entrypoint.sh"]
