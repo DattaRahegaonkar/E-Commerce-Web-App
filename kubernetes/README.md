@@ -5,29 +5,46 @@ This comprehensive guide provides instructions for deploying the E-Commerce Web 
 ## 🏗️ Architecture Overview
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   MongoDB       │
-│   (React SPA)   │◄──►│   (Node.js API) │◄──►│   (Database)    │
-│   Port: 80      │    │   Port: 8081    │    │   Port: 27017   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                        ┌─────────────────┐
-                        │    Ingress      │
-                        │    (Nginx)      │
-                        │    Port: 80     │
-                        └─────────────────┘
+                    Internet
+                       │
+                       ▼
+              ┌─────────────────┐
+              │ Nginx Ingress   │
+              │    Port 80      │
+              └────────┬────────┘
+                       │
+                       ▼
+              ┌─────────────────┐
+              │ Frontend Service│
+              │    React/Nginx  │
+              └────────┬────────┘
+                       │
+                       │ /api/
+                       ▼
+              ┌─────────────────┐
+              │ Backend Service │
+              │ Node.js/Express │
+              │    Port 8081    │
+              └────────┬────────┘
+                       │
+                       ▼
+              ┌─────────────────┐
+              │ MongoDB Service │
+              │    Port 27017   │
+              └─────────────────┘
+
 ```
 
 ## 📋 Prerequisites
 
-- [Kind](https://kind.sigs.k8s.io/) or Kubernetes cluster
+- [Kind](https://kind.sigs.k8s.io/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker](https://www.docker.com/)
 - Built Docker images:
   - `docker_hub_username/ecommerce-backend:latest`
   - `docker_hub_username/ecommerce-frontend:latest`
+
+- [Ingress](https://kind.sigs.k8s.io/docs/user/ingress)
 
 ## 🚀 Quick Start
 
@@ -40,13 +57,7 @@ kind create cluster --config ../../config.yml --name ecommerce-cluster
 kubectl cluster-info --context kind-ecommerce-cluster
 ```
 
-### 2. Environment Configuration
-Update the following files with your environment variables:
-- `backend-secret.yml` - Backend configuration
-- `frontend-secret.yml` - Frontend API URL
-- `mongo-secret.yml` - Database credentials
-
-### 3. Deploy Storage Layer
+### 2. Deploy Storage Layer
 ```bash
 # Create namespace
 kubectl apply -f namespace.yml
@@ -58,7 +69,7 @@ kubectl apply -f mongo-pv.yml -f mongo-pvc.yml
 kubectl apply -f mongo-deployment.yml -f mongo-service.yml
 ```
 
-### 4. Create MongoDB Application User
+### 3. Create MongoDB Application User
 ```bash
 # Get MongoDB pod name
 kubectl get pod -n ecommerce | grep mongo
@@ -80,12 +91,72 @@ show users
 exit
 ```
 
-### 5. Deploy Application Layer
+### 4. Deploy Application Layer
+
 ```bash
 # Deploy backend
 kubectl apply -f backend-deployment.yml -f backend-service.yml
+```
 
-# Deploy frontend
+#### Configure Frontend Nginx
+
+The frontend container uses Nginx to:
+
+1. Serve the React application.
+2. Forward `/api` requests to the backend service.
+
+Create:
+
+```text
+Frontend/nginx.conf
+```
+
+Use the following configuration:
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Forward API requests to the backend
+    location /api/ {
+        proxy_pass http://backend-service:8081;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # React Router
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static files
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Enable compression
+    gzip on;
+
+    gzip_types
+        text/plain
+        application/xml
+        application/json
+        text/css
+        application/javascript
+        image/svg+xml;
+}
+```
+
+```bash
+# Deploy Frontend
+# Note - After building and pushing the frontend image
 kubectl apply -f frontend-deployment.yml -f frontend-service.yml
 
 # Deploy ingress
@@ -184,13 +255,6 @@ kubectl delete namespace ecommerce
 # Delete cluster (if using Kind)
 kind delete cluster --name ecommerce-cluster
 ```
-
-## 📊 Resource Optimization
-
-### Current Resource Limits
-- **Backend:** Requests: 5m CPU, 40Mi RAM | Limits: 500m CPU, 400Mi RAM
-- **Frontend:** Requests: 5m CPU, 40Mi RAM | Limits: 500m CPU, 400Mi RAM
-- **MongoDB:** Requests: 5m CPU, 140Mi RAM | Limits: 500m CPU, 590Mi RAM
 
 ### Monitoring Commands
 ```bash
