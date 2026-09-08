@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Package, Truck, CheckCircle, Clock, Eye, ArrowLeft } from 'lucide-react';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);

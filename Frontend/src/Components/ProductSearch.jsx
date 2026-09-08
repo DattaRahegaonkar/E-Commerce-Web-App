@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const ProductSearch = ({ onResults, onLoading }) => {
   const [searchTerm, setSearchTerm] = useState("");

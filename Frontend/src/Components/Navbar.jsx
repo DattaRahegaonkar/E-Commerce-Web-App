@@ -4,7 +4,7 @@ import { Menu, X, ShoppingCart } from "lucide-react";
 import Cart from "./Cart";
 import "./Navbar.css";
 
-const apiBaseUrl = import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
 
 const Navbar = () => {
   const auth = localStorage.getItem("user");

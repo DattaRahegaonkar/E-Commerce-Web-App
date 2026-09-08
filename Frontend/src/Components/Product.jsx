@@ -1,5 +1,5 @@
 // Use environment variable or empty string for relative URLs
-const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
