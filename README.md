@@ -104,7 +104,7 @@ docker volume create ecommerce-volume
 #### Start MongoDB Container
 ```bash
 docker run -d \
-  --name mongodb \
+  --name mongodb-container \
   --restart unless-stopped \
   --network ecommerce-network \
   -v ecommerce-volume:/data/db \
@@ -117,7 +117,7 @@ docker run -d \
 #### Create Application User (Security Best Practice)
 ```bash
 # Connect to MongoDB as root
-docker exec -it mongodb mongosh -u root -p root123 --authenticationDatabase admin
+docker exec -it mongodb-container mongosh -u root -p root123 --authenticationDatabase admin
 
 # Switch to application database
 use ecommerceDB
@@ -157,7 +157,7 @@ docker build --no-cache -t ecommerce-backend .
 #### Run Backend Container
 ```bash
 docker run -d \
-  --name backend \
+  --name backend-container \
   --restart unless-stopped \
   --network ecommerce-network \
   --env-file .env \
@@ -166,8 +166,8 @@ docker run -d \
 
 #### Monitor Backend Logs
 ```bash
-docker logs backend
-docker logs -f backend  # Follow logs in real-time
+docker logs backend-container
+docker logs -f backend-container  # Follow logs in real-time
 ```
 
 
@@ -207,17 +207,16 @@ docker build --no-cache -t ecommerce-frontend .
 #### Run Frontend Container
 ```bash
 docker run -d \
-  --name frontend \
-  --restart unless-stopped \
+  --name frontend-container \
   --network ecommerce-network \
-  --env-file .env \
+  -e BACKEND_URL=http://localhost \
   ecommerce-frontend:latest
 ```
 
 #### Monitor Frontend Logs
 ```bash
-docker logs frontend
-docker logs -f frontend  # Follow logs in real-time
+docker logs frontend-container
+docker logs -f frontend-container  # Follow logs in real-time
 ```
 
 ### 4. Verification
@@ -244,11 +243,11 @@ mkdir -p nginx
 Create `nginx/nginx.conf`:
 ```nginx
 upstream frontend {
-    server frontend:80;
+    server frontend-container:80;
 }
 
 upstream backend {
-    server backend:8081;
+    server backend-container:8081;
 }
 
 server {
@@ -259,10 +258,11 @@ server {
     location /api/ {
         proxy_pass http://backend;
         proxy_set_header Host $host;
-        proxy_set_header Origin http://72.60.111.1;
+        proxy_set_header Origin http://localhost;  # Set Origin to localhost for backend requests
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        # Don't override Origin header - let it pass through for proper CORS handling
     }
     
     # Everything else goes to frontend (React SPA)
@@ -280,7 +280,7 @@ server {
 #### Run Nginx Reverse Proxy
 ```bash
 docker run -d \
-  --name nginx \
+  --name nginx-container \
   --network ecommerce-network \
   -p 80:80 \
   -v $(pwd)/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
