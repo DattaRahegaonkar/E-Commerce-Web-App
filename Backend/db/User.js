@@ -1,6 +1,6 @@
 // Backend/db/User.js - Updated Schema with Password Hashing
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const AddressSchema = new mongoose.Schema({
   name: { type: String, required: true },
