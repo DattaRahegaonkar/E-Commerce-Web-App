@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { CreditCard, Smartphone, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL  || '';
 
 const PaymentPage = () => {
   const { orderId } = useParams();

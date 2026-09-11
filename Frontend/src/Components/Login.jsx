@@ -1,4 +1,4 @@
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";

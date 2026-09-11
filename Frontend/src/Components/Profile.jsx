@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { User, MapPin, Plus, Edit, Trash2, Star, ArrowLeft } from 'lucide-react';
 
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const Profile = () => {
   const [user, setUser] = useState(null);

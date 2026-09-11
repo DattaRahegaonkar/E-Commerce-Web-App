@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, Package, Truck, MapPin, Phone, Mail } from 'lucide-react';
 
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const OrderConfirmation = () => {
   const { orderId } = useParams();

@@ -13,7 +13,7 @@ import {
   Edit
 } from 'lucide-react';
 
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Truck, MapPin, ArrowLeft } from 'lucide-react';
 
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL;
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const Checkout = () => {
   const [cart, setCart] = useState({ items: [], totalAmount: 0 });
