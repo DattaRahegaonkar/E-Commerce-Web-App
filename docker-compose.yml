@@ -76,10 +76,8 @@ services:
 
 networks:
   ecommerce-network:
-    external: true
     name: ecommerce-network
 
 volumes:
   ecommerce-volume:
-    external: true
     name: ecommerce-volume
