@@ -1,0 +1,131 @@
+
+pipeline {
+    agent any
+
+    environment {
+        MONGO_INITDB_ROOT_USERNAME = "root"
+        MONGO_INITDB_ROOT_PASSWORD = "root@123"
+        MONGO_INITDB_DATABASE = "ecommerceDB"
+
+        PORT = "8081"
+        NODE_ENV = "production"
+        JWT_SECRET = "eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTc2MDUzNzA0NywiaWF0IjoxNzYwNTM3MDQ3fQ.odVmkDu1L3Y993485a3d0iI3ENYYgRizFldL5o-cM4A"
+        MONGO_URI = "mongodb://ecommerceuser:ecommerce123@mongodb-container:27017/ecommerceDB"
+        JWT_EXPIRES_IN = "7d"
+        ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:80,http://localhost,http://frontend-container,http://frontend-container:5173,http://frontend-container:80,http://34.246.218.216"
+    }
+
+    stages {
+
+        stage("Cleaning") {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage("Cloning") {
+            steps {
+                git url: "https://github.com/DattaRahegaonkar/E-Commerce-Web-App.git", branch: "main"
+            }
+        }
+
+        stage("Building Docker Images") {
+            steps {
+                sh '''
+                docker build -t ecommerce-app-backend Backend/
+                docker build -t ecommerce-app-frontend Frontend/
+                '''
+            }
+        }
+
+        stage("Tagging Docker Images") {
+            steps {
+                sh '''
+                docker tag ecommerce-app-backend:latest dattarahegaonkar09/ecommerce-app-backend:v1
+                docker tag ecommerce-app-frontend:latest dattarahegaonkar09/ecommerce-app-frontend:v1
+                '''
+            }
+        }
+
+        stage("Pushing Docker Images") {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                    docker push dattarahegaonkar09/ecommerce-app-backend:v1
+                    docker push dattarahegaonkar09/ecommerce-app-frontend:v1
+                    '''
+                }
+            }
+        }
+
+        stage("Create .env") {
+            steps {
+                sh '''
+                cat > Backend/.env <<EOF
+PORT=$PORT
+NODE_ENV=$NODE_ENV
+JWT_SECRET=$JWT_SECRET
+MONGO_URI=$MONGO_URI
+JWT_EXPIRES_IN=$JWT_EXPIRES_IN
+ALLOWED_ORIGINS=$ALLOWED_ORIGINS
+EOF
+
+                cat > database/.env <<EOF
+MONGO_INITDB_ROOT_USERNAME=$MONGO_INITDB_ROOT_USERNAME
+MONGO_INITDB_ROOT_PASSWORD=$MONGO_INITDB_ROOT_PASSWORD
+MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+EOF
+                '''
+            }
+        }
+
+        stage("Start MongoDB") {
+            steps {
+                sh '''
+                docker compose down || true
+                docker compose up -d mongodb
+                '''
+            }
+        }
+
+        stage("Create Application User") {
+            steps {
+                sh '''
+                docker exec -i mongodb-container mongosh \
+                    -u "$MONGO_INITDB_ROOT_USERNAME" \
+                    -p "$MONGO_INITDB_ROOT_PASSWORD" \
+                    --authenticationDatabase admin \
+                    --eval "
+                    db = db.getSiblingDB('$MONGO_INITDB_DATABASE');
+
+                    if (db.getUser('ecommerceuser') == null) {
+                        db.createUser({
+                            user: 'ecommerceuser',
+                            pwd: 'ecommerce123',
+                            roles: [
+                                {
+                                    role: 'readWrite',
+                                    db: '$MONGO_INITDB_DATABASE'
+                                }
+                            ]
+                        });
+
+                        print('Application user created');
+                    } else {
+                        print('Application user already exists');
+                    }
+                    "
+                '''
+            }
+        }
+
+        stage("Deploy Application") {
+            steps {
+                sh '''
+                docker compose up -d backend frontend nginx
+                '''
+            }
+        }
+    }
+}
