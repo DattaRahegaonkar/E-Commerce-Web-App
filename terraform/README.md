@@ -12,8 +12,8 @@ This directory contains Terraform configuration to create a production-ready Ama
 
 ### VPC & Networking (`vpc.tf`)
 - **VPC** (10.0.0.0/16) with DNS support enabled
-- **Public Subnets** (10.0.1.0/24, 10.0.2.0/24) in eu-west-1a & eu-west-1b
-- **Private Subnets** (10.0.3.0/24, 10.0.4.0/24) in eu-west-1a & eu-west-1b
+- **Public Subnets** (10.0.0.0/24, 10.0.1.0/24) in eu-west-1a & eu-west-1b
+- **Private Subnets** (10.0.2.0/24, 10.0.3.0/24) in eu-west-1a & eu-west-1b
 - **Internet Gateway** for public subnet connectivity
 - **NAT Gateways** (2) with Elastic IPs for private subnet outbound access
 - **Route Tables** with proper associations for public/private routing
@@ -38,7 +38,7 @@ This directory contains Terraform configuration to create a production-ready Ama
 
 ## Configuration Details
 
-- **Cluster Name:** ecommerce-eks-cluster
+- **Cluster Name:** eks-cluster
 - **Kubernetes Version:** 1.31
 - **VPC CIDR:** 10.0.0.0/16
 - **Node Group:** 2-4 t3.micro instances in private subnets
@@ -126,6 +126,14 @@ terraform destroy --auto-approve
 
 
 
+aws sts get-caller-identity
+
+aws eks list-clusters --region eu-west-1
+
+aws eks update-kubeconfig \
+  --region eu-west-1 \
+  --name eks-cluster
+
 kubectl config get-clusters
 
 kubectl config use-context kind-argocd-cluster
@@ -142,3 +150,5 @@ kubectl config get-contexts
 kubectl config use-context kind-argocd-cluster
 
 kubectl get nodes
+
+

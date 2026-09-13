@@ -3,5 +3,5 @@
 terraform.tfstate
 terraform.tfstate.backup
 
-eks-key
-eks-key.pub
+baston-key
+baston-key.pub
