@@ -17,10 +17,10 @@ services:
       retries: 5
 
   backend:
-    #image: dattarahegaonkar09/ecommerce-backend:v1
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
+    image: dattarahegaonkar09/ecommerce-app-backend:v1
+    # build:
+    #   context: ./Backend
+    #   dockerfile: Dockerfile
     container_name: backend-container
     networks:
       - ecommerce-network
@@ -37,10 +37,10 @@ services:
       retries: 5
     
   frontend:
-    #image: dattarahegaonkar09/ecommerce-frontend:v1
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
+    image: dattarahegaonkar09/ecommerce-app-frontend:v1
+    # build:
+    #   context: ./Frontend
+    #   dockerfile: Dockerfile
     container_name: frontend-container
     networks:
       - ecommerce-network
