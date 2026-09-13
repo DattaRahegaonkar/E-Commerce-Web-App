@@ -103,21 +103,13 @@ docker volume create ecommerce-volume
 
 #### Start MongoDB Container
 ```bash
-docker run -d \
-  --name mongodb-container \
-  --restart unless-stopped \
-  --network ecommerce-network \
-  -v ecommerce-volume:/data/db \
-  -e MONGO_INITDB_ROOT_USERNAME=root \
-  -e MONGO_INITDB_ROOT_PASSWORD=root123 \
-  -e MONGO_INITDB_DATABASE=ecommerceDB \
-  mongo:latest
+docker compose up -d mongodb
 ```
 
 #### Create Application User (Security Best Practice)
 ```bash
 # Connect to MongoDB as root
-docker exec -it mongodb-container mongosh -u root -p root123 --authenticationDatabase admin
+docker exec -it mongodb-container mongosh -u root -p root@123 --authenticationDatabase admin
 
 # Switch to application database
 use ecommerceDB
@@ -143,25 +135,14 @@ exit
 MONGO_URI=mongodb://ecommerceuser:ecommerce123@mongodb:27017/ecommerceDB
 JWT_SECRET=your-secure-jwt-secret-key
 JWT_EXPIRES_IN=7d
-NODE_ENV=development
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80,http://<backend-comntainer-name>,http://<backend-comntainer-name>:80,http://localhost
+NODE_ENV=production
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80,http://<frontend-comntainer-name>,http://<frontend-comntainer-name>:80,http://<ec2-public-ip>
 PORT=8081
-```
-
-#### Build Backend Image
-```bash
-cd Backend
-docker build --no-cache -t ecommerce-backend .
 ```
 
 #### Run Backend Container
 ```bash
-docker run -d \
-  --name backend-container \
-  --restart unless-stopped \
-  --network ecommerce-network \
-  --env-file .env \
-  ecommerce-backend:latest
+docker compose up -d backend
 ```
 
 #### Monitor Backend Logs
@@ -198,19 +179,10 @@ server {
 
 ```
 
-#### Build Frontend Image
-```bash
-cd Frontend
-docker build --no-cache -t ecommerce-frontend .
-```
-
 #### Run Frontend Container
+
 ```bash
-docker run -d \
-  --name frontend-container \
-  --network ecommerce-network \
-  -e BACKEND_URL=http://localhost \
-  ecommerce-frontend:latest
+docker compose up -d frontend
 ```
 
 #### Monitor Frontend Logs
@@ -258,7 +230,6 @@ server {
     location /api/ {
         proxy_pass http://backend;
         proxy_set_header Host $host;
-        proxy_set_header Origin http://localhost;  # Set Origin to localhost for backend requests
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -279,18 +250,13 @@ server {
 
 #### Run Nginx Reverse Proxy
 ```bash
-docker run -d \
-  --name nginx-container \
-  --network ecommerce-network \
-  -p 80:80 \
-  -v $(pwd)/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
-  nginx:alpine
+docker compose up -d nginx
 ```
 
 #### Access Application
-- **Frontend**: http://localhost
-- **API**: http://localhost/show, http://localhost/login, etc.
-- **All routes**: Automatically proxied to correct container
+```bash
+http://<ec2-public-ip>:<port>
+```
 
 
 ### 6. Container Management
@@ -343,37 +309,12 @@ docker rmi ecommerce-frontend ecommerce-backend
 
 ```
 
-
-## Docker Compose Deployment
-
-### Prerequisites
-```bash
-# Create Docker network and volume
-docker network create ecommerce-network
-docker volume create ecommerce-volume
-```
-
-### Quick Deployment
-```bash
-# Clone and navigate to project
-git clone <repository-url>
-cd E-Commerce-Web-App
-
-# Deploy with Docker Compose
-docker compose up -d
-```
-
 ### Configuration Files Required
 - `database/.env` - database environment variables
 - `Backend/.env` - Backend environment variables
 - `Frontend/.env` - Frontend environment variables
 - `Frontend/nginc.conf` - Nginx to serve the static files
 - `nginx/nginx.conf` - Nginx reverse proxy configuration
-
-
-### Access Application
-- **Frontend**: http://localhost
-- **API Health**: http://localhost/api/health
 
 ### Management Commands
 ```bash
