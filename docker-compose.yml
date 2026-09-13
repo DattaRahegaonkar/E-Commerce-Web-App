@@ -1,7 +1,7 @@
 
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:8.0.4
     container_name: mongodb-container
     networks:
       - ecommerce-network
@@ -17,10 +17,10 @@ services:
       retries: 5
 
   backend:
-    image: dattarahegaonkar09/ecommerce-backend:v1
-    # build:
-    #   context: ./Backend
-    #   dockerfile: Dockerfile
+    #image: dattarahegaonkar09/ecommerce-backend:v1
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
     container_name: backend-container
     networks:
       - ecommerce-network
@@ -37,16 +37,16 @@ services:
       retries: 5
     
   frontend:
-    image: dattarahegaonkar09/ecommerce-frontend:v1
-    # build:
-    #   context: ./Frontend
-    #   dockerfile: Dockerfile
+    #image: dattarahegaonkar09/ecommerce-frontend:v1
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
     container_name: frontend-container
     networks:
       - ecommerce-network
     restart: unless-stopped
     environment:
-      - BACKEND_URL=http://localhost
+      - BACKEND_URL=
     depends_on:
       backend:
         condition: service_healthy
