@@ -83,8 +83,19 @@ EOF
         stage("Start MongoDB") {
             steps {
                 sh '''
-                docker compose down || true
                 docker compose up -d mongodb
+                '''
+            }
+        }
+
+        stage("Wait for MongoDB") {
+            steps {
+                sh '''
+                echo "Waiting for MongoDB container..."
+
+                sleep 30
+                
+                echo "MongoDB wait completed"
                 '''
             }
         }
@@ -92,9 +103,7 @@ EOF
         stage("Create Application User") {
             steps {
                 sh '''
-                docker exec mongodb-container mongosh \
-                    -u "$MONGO_INITDB_ROOT_USERNAME" \
-                    -p "$MONGO_INITDB_ROOT_PASSWORD" \
+                docker exec mongodb-container mongosh -u "$MONGO_INITDB_ROOT_USERNAME" -p "$MONGO_INITDB_ROOT_PASSWORD" \
                     --authenticationDatabase admin \
                     --eval "
                     db = db.getSiblingDB('$MONGO_INITDB_DATABASE');
