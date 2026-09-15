@@ -92,7 +92,7 @@ EOF
         stage("Create Application User") {
             steps {
                 sh '''
-                docker exec -it mongodb-container mongosh \
+                docker exec mongodb-container mongosh \
                     -u "$MONGO_INITDB_ROOT_USERNAME" \
                     -p "$MONGO_INITDB_ROOT_PASSWORD" \
                     --authenticationDatabase admin \
