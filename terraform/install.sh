@@ -35,6 +35,7 @@ sudo apt install docker.io docker-compose-v2 -y
 sudo systemctl enable docker
 sudo systemctl start docker
 
+# add the current user to the docker group to run docker commands without sudo
 sudo usermod -aG docker ubuntu
 newgrp docker
 
@@ -56,5 +57,8 @@ sudo apt install jenkins -y
 
 sudo systemctl enable jenkins
 sudo systemctl start jenkins
-sudo systemctl status jenkins
+
+# add the jenkins user to the docker group to run docker commands without sudo
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
 
