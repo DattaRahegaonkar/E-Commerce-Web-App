@@ -6,33 +6,68 @@ metadata:
   namespace: ecommerce
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: backend
+
   template:
     metadata:
       name: backend-pod
       labels:
         app: backend
+
     spec:
+      serviceAccountName: secret-manager-sa
+
       containers:
-        - name: backend
-          image: dattarahegaonkar09/ecommerce-backend-k8s:latest
+        - name: backend-container
+          image: dattarahegaonkar09/ecommerce-app-backend:v1
           ports:
             - containerPort: 8081
+
           env:
             - name: MONGO_URI
-              value: mongodb://ecommerceuser:ecommerce123@mongo-service:27017/ecommerceDB
-            - name: PORT
-              value: "8081"
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: MONGO_URI
+
             - name: JWT_SECRET
-              value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTc1Nzc0NjgwMCwiaWF0IjoxNzU3NzQ2ODAwfQ.wtfA7KbPNa3UFjr25KbWSvZS5JmsI1AixkH8pzLCkyU
-            - name: JWT_EXPIRES_IN
-              value: 7d
-            - name: ALLOWED_ORIGINS
-              value: http://localhost:5173,http://localhost:80,http://localhost,http://localhost:8082,http://ecommerce.rahegaonkar.site,http://frontend-service,http://frontend-service:80
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: JWT_SECRET
+
             - name: NODE_ENV
-              value: development
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: NODE_ENV
+
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: PORT
+
+            - name: JWT_EXPIRES_IN
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: JWT_EXPIRES_IN
+
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: ALLOWED_ORIGINS
+
+          volumeMounts:
+            - mountPath: /mnt/secrets-store
+              name: backend-secrets-store
+              readOnly: true
+
           resources:
             requests:
               memory: "40Mi"
@@ -40,4 +75,13 @@ spec:
             limits:
               memory: "400Mi"
               cpu: "500m"
+
+      volumes:
+        - name: backend-secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "backend-secret-provider"  
+                 
       restartPolicy: Always

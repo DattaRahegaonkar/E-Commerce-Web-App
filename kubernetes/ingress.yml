@@ -4,6 +4,8 @@ metadata:
   name: ecommerce-ingress
   namespace: ecommerce
 spec:
+  ingressClassName: nginx
+  
   rules:
   # - host: ecommerce.rahegaonkar.site
   - http:

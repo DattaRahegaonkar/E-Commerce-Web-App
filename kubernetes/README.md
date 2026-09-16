@@ -1,83 +1,143 @@
-# Kubernetes Deployment Guide
+# Kubernetes Deployment Flow
 
-This comprehensive guide provides instructions for deploying the E-Commerce Web App to a Kubernetes cluster. The application consists of a React frontend, Node.js/Express backend, and MongoDB database.
+End-to-end steps to deploy the e-commerce app on EKS with secrets pulled from AWS Secrets Manager and EBS volume created using AWS EBS CSI driver addon.
 
-## 🏗️ Architecture Overview
+---
 
-```
-                    Internet
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ Nginx Ingress   │
-              │    Port 80      │
-              └────────┬────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ Frontend Service│
-              │    React/Nginx  │
-              └────────┬────────┘
-                       │
-                       │ /api/
-                       ▼
-              ┌─────────────────┐
-              │ Backend Service │
-              │ Node.js/Express │
-              │    Port 8081    │
-              └────────┬────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ MongoDB Service │
-              │    Port 27017   │
-              └─────────────────┘
+## Prerequisites
 
-```
+- AWS CLI configured (`aws configure`)
+- `eksctl` installed
+- `kubectl` installed
+- Docker images pushed to Docker Hub:
+  - `dattarahegaonkar09/ecommerce-app-backend:v1`
+  - `dattarahegaonkar09/ecommerce-app-frontend:v1`
 
-## 📋 Prerequisites
+---
 
-- [Kind](https://kind.sigs.k8s.io/)
-- [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [Docker](https://www.docker.com/)
-- Built Docker images:
-  - `docker_hub_username/ecommerce-backend:latest`
-  - `docker_hub_username/ecommerce-frontend:latest`
+## Step 1 — Terraform (VPC + IAM Policy)
 
-- [Ingress](https://kind.sigs.k8s.io/docs/user/ingress)
-
-## 🚀 Quick Start
-
-### 1. Cluster Setup
 ```bash
-# Create Kind cluster
-kind create cluster --config ../../config.yml --name ecommerce-cluster
-
-# Verify cluster
-kubectl cluster-info --context kind-ecommerce-cluster
+cd terraform
+terraform init
+terraform apply --auto-approve
 ```
 
-### 2. Deploy Storage Layer
+This creates:
+- VPC with public/private subnets
+- IAM policy `secrets-policy` that allows `GetSecretValue` + `DescribeSecret` on `ecommerce/*` secrets
+
+---
+
+## Step 2 — Create EKS Cluster
+
 ```bash
-# Create namespace
+cd kubernetes
+eksctl create cluster -f eks-cluster.yml
+```
+
+This creates:
+- EKS cluster `eks-cluster` in `eu-west-1`
+- Managed node group (2x `c7i-flex.large`) in private subnets
+- OIDC provider for IRSA
+- ServiceAccount `secret-manager-sa` in `ecommerce` namespace with `secrets-policy` attached
+- Addons: `eks-pod-identity-agent`, `aws-secrets-store-csi-driver-provider`, `aws-ebs-csi-driver`
+
+Configure kubectl:
+```bash
+aws eks update-kubeconfig --region eu-west-1 --name eks-cluster
+kubectl get nodes  # verify
+```
+
+---
+
+## Step 3 — Create Secrets in AWS Secrets Manager
+
+```bash
+aws secretsmanager create-secret \
+  --name ecommerce/mongodb-secrets \
+  --secret-string '{
+    "MONGO_INITDB_ROOT_USERNAME": "root",
+    "MONGO_INITDB_ROOT_PASSWORD": "root@123",
+    "MONGO_INITDB_DATABASE": "ecommerceDB"
+  }' \
+  --region eu-west-1
+
+aws secretsmanager create-secret \
+  --name ecommerce/backend-secrets \
+  --secret-string '{
+    "MONGO_URI": "mongodb://ecommerceuser:ecommerce123@mongo-service:27017/ecommerceDB",
+    "JWT_SECRET": "<your-jwt-secret>",
+    "NODE_ENV": "production",
+    "PORT": "8081",
+    "JWT_EXPIRES_IN": "7d",
+    "ALLOWED_ORIGINS": "http://<alb-url>"
+  }' \
+  --region eu-west-1
+
+aws secretsmanager create-secret \
+  --name ecommerce/frontend-secrets \
+  --secret-string '{
+    "BACKEND_URL": ""
+  }' \
+  --region eu-west-1
+```
+
+---
+
+## Step 4 — Apply RBAC for Secrets Store CSI Driver
+
+Grants the CSI driver permission to create/update K8s Secrets in the cluster.
+
+```bash
+kubectl apply -f secret-sync-rbac.yaml
+```
+
+---
+
+## Step 5 — Deploy Namespace + SecretProviderClasses
+
+```bash
 kubectl apply -f namespace.yml
-
-# Deploy persistent storage
-kubectl apply -f mongo-pv.yml -f mongo-pvc.yml
-
-# Deploy database
-kubectl apply -f mongo-deployment.yml -f mongo-service.yml
+kubectl apply -f mongodb-secret-provider.yaml
+kubectl apply -f backend-secret-provider.yaml
+kubectl apply -f frontend-secret-provider.yaml
 ```
 
-### 3. Create MongoDB Application User
+Each `SecretProviderClass` tells the CSI driver which AWS secret to fetch and how to sync it into a K8s Secret.
+
+---
+
+## Step 6 — Deploy MongoDB
+
 ```bash
-# Get MongoDB pod name
-kubectl get pod -n ecommerce | grep mongo
+kubectl apply -f mongo-pvc.yml
+kubectl apply -f mongo-deployment.yml
+kubectl apply -f mongo-service.yml
+```
 
-# Connect to MongoDB
-kubectl exec -it <mongo-pod-name> -n ecommerce -- mongosh -u root -p root123 --authenticationDatabase admin
+Mounting the CSI volume in the pod triggers the secret sync — this creates the `mongodb-secret` K8s Secret automatically.
 
-# Inside MongoDB shell add this user:
+Verify:
+```bash
+kubectl get pods -n ecommerce
+kubectl get secret mongodb-secret -n ecommerce  # should exist now
+```
+
+---
+
+## Step 7 — Create MongoDB Application User
+
+```bash
+# Get mongo pod name
+kubectl get pods -n ecommerce -l app=mongo
+
+# Connect as root
+kubectl exec -it <mongo-pod-name> -n ecommerce -- mongosh -u root -p root@123 --authenticationDatabase admin
+```
+
+Inside the shell:
+```js
 use ecommerceDB
 
 db.createUser({
@@ -87,178 +147,112 @@ db.createUser({
 })
 
 show users
-
 exit
 ```
 
-### 4. Deploy Application Layer
+---
+
+## Step 8 — Deploy Backend
 
 ```bash
-# Deploy backend
-kubectl apply -f backend-deployment.yml -f backend-service.yml
+kubectl apply -f backend-deployment.yml
+kubectl apply -f backend-service.yml
 ```
 
-#### Configure Frontend Nginx
-
-The frontend container uses Nginx to:
-
-1. Serve the React application.
-2. Forward `/api` requests to the backend service.
-
-Create:
-
-```text
-Frontend/nginx.conf
+Verify:
+```bash
+kubectl get pods -n ecommerce -l app=backend
+kubectl get secret backend-secret -n ecommerce  # should exist now
 ```
 
-Use the following configuration:
+---
 
-```nginx
-server {
-    listen 80;
-    server_name _;
-
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # Forward API requests to the backend
-    location /api/ {
-        proxy_pass http://backend-service:8081;
-
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # React Router
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static files
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # Enable compression
-    gzip on;
-
-    gzip_types
-        text/plain
-        application/xml
-        application/json
-        text/css
-        application/javascript
-        image/svg+xml;
-}
-```
+## Step 9 — Deploy Frontend
 
 ```bash
-# Deploy Frontend
-# Note - After building and pushing the frontend image
-kubectl apply -f frontend-deployment.yml -f frontend-service.yml
+kubectl apply -f frontend-deployment.yml
+kubectl apply -f frontend-service.yml
+```
 
-# Deploy ingress
+Verify:
+```bash
+kubectl get pods -n ecommerce -l app=frontend
+kubectl get secret frontend-secret -n ecommerce  # should exist now
+```
+
+---
+
+## Step 10 — Deploy Ingress
+
+Install the Nginx Ingress Controller:
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/cloud/deploy.yaml
+```
+
+Then deploy the ingress rules:
+```bash
 kubectl apply -f ingress.yml
 ```
 
-### 6. Verify Deployment
+Traffic routing:
+- `/api/*` → `backend-service:8081`
+- `/*` → `frontend-service:80`
+
+Get the Ingress URL:
 ```bash
-# Check all resources
+kubectl get ingress -n ecommerce
+```
+
+Update `ALLOWED_ORIGINS` in `ecommerce/backend-secrets` and `BACKEND_URL` in `ecommerce/frontend-secrets` with the actual URL, then restart the pods:
+```bash
+kubectl rollout restart deployment/backend-deployment -n ecommerce
+kubectl rollout restart deployment/frontend-deployment -n ecommerce
+```
+
+---
+
+## Step 11 — Verify
+
+```bash
 kubectl get all -n ecommerce
+kubectl get ingress -n ecommerce
 
-# Check pod status
-kubectl get pods -n ecommerce
-```
-
-## 🌐 Access the Application
-
-### Method 1: Port Forwarding (Recommended for Development)
-```bash
-# Port forward ingress controller
-kubectl port-forward service/ingress-nginx-controller -n ingress-nginx 80:80 --address=0.0.0.0
-
-Access at: http://localhost:80
-```
-
-### Method 2: Ingress Domain
-If ingress is configured with a domain:
-- Frontend: `http://your-domain.com`
-- API: `http://your-domain.com/api/`
-
-## ✅ Verification & Health Checks
-
-### Check Deployment Status
-```bash
-# All resources in namespace
-kubectl get all -n ecommerce
-
-# Pod status with details
-kubectl get pods -n ecommerce -o wide
-
-```
-
-### Database Connectivity Test
-```bash
-# Connect to MongoDB
-kubectl exec -it <mongo-pod> -n ecommerce -- mongosh -u ecommerceuser -p ecommerce123 --authenticationDatabase ecommerceDB
-
-# Test database operations
-use ecommerceDB
-db.users.find()
-db.products.find()
-```
-
-## 🔧 Troubleshooting Guide
-
-### Common Issues
-
-#### Pod Creation Errors
-```bash
-# Check pod status and events
-kubectl describe pod <pod-name> -n ecommerce
-```
-
-#### Connectivity Issues
-```bash
-# Test internal service connectivity
-kubectl exec -it <backend-pod> -n ecommerce -- curl http://mongo-service:27017
-kubectl exec -it <frontend-pod> -n ecommerce -- curl http://backend-service:8081/api/health
-```
-
-### Debug Commands
-```bash
-# Get detailed pod information
-kubectl describe pod <pod-name> -n ecommerce
-
-# Check resource usage
-kubectl top pods -n ecommerce
-```
-
-### Log Analysis
-```bash
-# Follow logs in real-time
+# Check logs
 kubectl logs -n ecommerce -l app=backend -f
 kubectl logs -n ecommerce -l app=frontend -f
 kubectl logs -n ecommerce -l app=mongo -f
-
 ```
 
-## 🧹 Cleanup
+---
 
-### Remove All Resources
+## Secrets Flow Summary
+
+```
+AWS Secrets Manager
+  ecommerce/mongodb-secrets ──► SecretProviderClass (mongodb-secret-provider) ──► K8s Secret (mongodb-secret) ──► mongo-deployment
+  ecommerce/backend-secrets  ──► SecretProviderClass (backend-secret-provider)  ──► K8s Secret (backend-secret)  ──► backend-deployment
+  ecommerce/frontend-secrets ──► SecretProviderClass (frontend-secret-provider) ──► K8s Secret (frontend-secret) ──► frontend-deployment
+```
+
+> K8s Secrets are created automatically when the pod mounts the CSI volume. No manual `kubectl create secret` needed.
+
+IAM permission chain:
+```
+secrets-policy (Terraform)
+        │
+        └── attached to secrets-role (IRSA)
+                │
+                └── bound to secret-manager-sa (ServiceAccount)
+                        │
+                        └── used by all pods (mongo, backend, frontend)
+```
+
+---
+
+## Cleanup
+
 ```bash
-# Delete namespace (removes all resources)
 kubectl delete namespace ecommerce
-
-# Delete cluster (if using Kind)
-kind delete cluster --name ecommerce-cluster
-```
-
-### Monitoring Commands
-```bash
-# Resource usage
-kubectl top pods -n ecommerce
-kubectl top nodes
+eksctl delete cluster -f eks-cluster.yml
+cd terraform && terraform destroy --auto-approve
 ```

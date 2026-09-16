@@ -6,23 +6,38 @@ metadata:
   namespace: ecommerce
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: frontend
+
   template:
     metadata:
       name: frontend-pod
       labels:
         app: frontend
+
     spec:
+      serviceAccountName: secret-manager-sa
+
       containers:
-        - name: frontend
-          image: dattarahegaonkar09/ecommerce-frontend-k8s:latest
+        - name: frontend-container
+          image: dattarahegaonkar09/ecommerce-app-frontend:v1
           ports:
             - containerPort: 80
+
           env:
-            - name: VITE_API_URL
-              value: /api
+            - name: BACKEND_URL
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-secret
+                  key: BACKEND_URL
+          
+          volumeMounts:
+            - name: frontend-secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+
           resources:
             requests:
               memory: "40Mi"
@@ -30,4 +45,15 @@ spec:
             limits:
               memory: "400Mi"
               cpu: "500m"
+
+      volumes:
+        - name: frontend-secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "frontend-secret-provider"
+
+
       restartPolicy: Always
+      
