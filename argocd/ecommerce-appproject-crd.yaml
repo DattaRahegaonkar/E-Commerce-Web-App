@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+
+metadata:
+  name: ecommerce-project
+  namespace: argocd
+
+spec:
+  description: E-Commerce application project
+
+  sourceRepos:
+    - "https://github.com/DattaRahegaonkar/E-Commerce-Web-App.git"
+
+  destinations:
+    - server: "https://kubernetes.default.svc"
+      namespace: "ecommerce"
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+      
