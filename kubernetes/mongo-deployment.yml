@@ -76,3 +76,102 @@ spec:
             volumeAttributes:
               secretProviderClass: "mongodb-secret-provider"
       restartPolicy: Always
+
+
+---
+
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: mongodb-create-app-user
+  namespace: ecommerce
+
+spec:
+  backoffLimit: 10
+
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: create-app-user
+          image: mongo:8.0.4
+
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "5m"
+            limits:
+              memory: "256Mi"
+              cpu: "100m"
+
+          env:
+            - name: MONGO_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: MONGO_INITDB_ROOT_USERNAME
+
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+
+            - name: MONGO_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: MONGO_INITDB_DATABASE
+
+            - name: MONGO_APP_USERNAME
+              value: "ecommerceuser"
+
+            - name: MONGO_APP_PASSWORD
+              value: "ecommerce123"
+
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Waiting for MongoDB..."
+
+              until mongosh \
+                --host mongo-service \
+                --username "$MONGO_ROOT_USERNAME" \
+                --password "$MONGO_ROOT_PASSWORD" \
+                --authenticationDatabase admin \
+                --eval "db.adminCommand('ping')" >/dev/null 2>&1
+              do
+                echo "MongoDB is not ready..."
+                sleep 5
+              done
+
+              echo "MongoDB is ready."
+
+              mongosh \
+                --host mongo-service \
+                --username "$MONGO_ROOT_USERNAME" \
+                --password "$MONGO_ROOT_PASSWORD" \
+                --authenticationDatabase admin \
+                --eval "
+                  db = db.getSiblingDB('$MONGO_DATABASE');
+
+                  if (db.getUser('$MONGO_APP_USERNAME') == null) {
+                    db.createUser({
+                      user: '$MONGO_APP_USERNAME',
+                      pwd: '$MONGO_APP_PASSWORD',
+                      roles: [
+                        {
+                          role: 'readWrite',
+                          db: '$MONGO_DATABASE'
+                        }
+                      ]
+                    });
+
+                    print('Application user created successfully');
+                  } else {
+                    print('Application user already exists');
+                  }
+                "
