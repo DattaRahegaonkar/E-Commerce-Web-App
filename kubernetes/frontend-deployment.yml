@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: frontend-container
-          image: dattarahegaonkar09/ecommerce-app-frontend:v5
+          image: dattarahegaonkar09/ecommerce-app-frontend:v1
           ports:
             - containerPort: 80
 
