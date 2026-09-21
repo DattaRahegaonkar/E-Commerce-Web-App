@@ -1,7 +1,6 @@
 #!/bin/bash
 
 sudo apt update
-
 sudo apt install unzip -y
 
 # Install AWS CLI
@@ -26,6 +25,11 @@ sudo install -m 0755 /tmp/eksctl /usr/local/bin/eksctl
 rm eksctl_Linux_amd64.tar.gz
 rm /tmp/eksctl
 eksctl version
+
+# Install Helm
+sudo apt update
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+helm version
 
 # Install Docker
 
@@ -61,4 +65,3 @@ sudo systemctl start jenkins
 # add the jenkins user to the docker group to run docker commands without sudo
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
-

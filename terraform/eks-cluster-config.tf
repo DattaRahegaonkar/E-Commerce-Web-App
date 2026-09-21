@@ -12,6 +12,7 @@ resource "local_file" "eks_cluster_config" {
   filename = "${path.module}/eks-cluster.yaml"
 }
 
+
 resource "null_resource" "copy_eks_config" {
   triggers = {
     eks_config = local_file.eks_cluster_config.content
@@ -32,5 +33,29 @@ resource "null_resource" "copy_eks_config" {
   depends_on = [
     aws_instance.bastion-host-tf,
     local_file.eks_cluster_config
+  ]
+}
+
+
+resource "null_resource" "copy_bootstrap" {
+
+  triggers = {
+    bootstrap = filemd5("${path.module}/bootstrap.sh")
+  }
+
+  connection {
+    type        = "ssh"
+    host        = aws_instance.bastion-host-tf.public_ip
+    user        = "ubuntu"
+    private_key = file("${path.module}/baston-key")
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/bootstrap.sh"
+    destination = "/home/ubuntu/bootstrap.sh"
+  }
+
+  depends_on = [
+    aws_instance.bastion-host-tf
   ]
 }

@@ -2,7 +2,7 @@
 
 resource "aws_iam_policy" "secrets_policy_tf" {
   name        = "secrets-policy"
-  description = "Allow MongoDB pod to read secret from AWS Secrets Manager"
+  description = "Allow pod to read secret from AWS Secrets Manager"
 
   policy = jsonencode({
     Version = "2012-10-17"

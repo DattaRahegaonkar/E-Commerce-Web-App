@@ -53,7 +53,7 @@ resource "aws_instance" "bastion-host-tf" {
   subnet_id     = aws_subnet.public-subnet-1a-tf.id
   key_name      = aws_key_pair.baston-key-pair-tf.key_name
 
-  security_groups = [aws_security_group.bastion-sg-tf.id]
+  vpc_security_group_ids = [aws_security_group.bastion-sg-tf.id]
 
   user_data = file("install.sh")
 
