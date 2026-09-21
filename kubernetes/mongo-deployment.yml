@@ -6,7 +6,7 @@ metadata:
   name: mongo-deployment
   namespace: ecommerce
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "10"
 
 spec:
   replicas: 1
@@ -89,7 +89,7 @@ metadata:
   name: mongodb-create-app-user
   namespace: ecommerce
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "11"
 
 spec:
   backoffLimit: 10

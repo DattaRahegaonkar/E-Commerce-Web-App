@@ -5,7 +5,7 @@ metadata:
   name: mongo-service
   namespace: ecommerce
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "7"
 spec:
   selector:
     app: mongo

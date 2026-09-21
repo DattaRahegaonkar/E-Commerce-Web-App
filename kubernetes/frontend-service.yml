@@ -5,7 +5,7 @@ metadata:
   name: frontend-service
   namespace: ecommerce
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "9"
 spec:
   selector:
     app: frontend
