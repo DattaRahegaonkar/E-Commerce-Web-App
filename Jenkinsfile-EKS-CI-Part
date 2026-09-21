@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage("Cleaning") {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage("Cloning") {
+            steps {
+                git url: "https://github.com/DattaRahegaonkar/E-Commerce-Web-App.git", branch: "main"
+            }
+        }
+
+        stage("Building Docker Images") {
+            steps {
+                sh '''
+                docker build -t ecommerce-app-backend:${BUILD_NUMBER} Backend/
+                docker build -t ecommerce-app-frontend:${BUILD_NUMBER} Frontend/
+                '''
+            }
+        }
+
+        stage("Tagging Docker Images") {
+            steps {
+                sh '''
+                docker tag ecommerce-app-backend:${BUILD_NUMBER} dattarahegaonkar09/ecommerce-app-backend:${BUILD_NUMBER}
+                docker tag ecommerce-app-frontend:${BUILD_NUMBER} dattarahegaonkar09/ecommerce-app-frontend:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage("Pushing Docker Images") {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+                    docker push dattarahegaonkar09/ecommerce-app-backend:${BUILD_NUMBER}
+                    docker push dattarahegaonkar09/ecommerce-app-frontend:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+    }
+}
