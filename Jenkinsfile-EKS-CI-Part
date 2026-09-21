@@ -61,7 +61,7 @@ pipeline {
                 docker rmi ecommerce-app-frontend:v${PREVIOUS_BUILD} || true
 
                 docker rmi dattarahegaonkar09/ecommerce-app-backend:v${PREVIOUS_BUILD} || true
-                docker rmi dattarahegaonkar09/ecommerce-app-frotnend:v${PREVIOUS_BUILD} || true
+                docker rmi dattarahegaonkar09/ecommerce-app-frontend:v${PREVIOUS_BUILD} || true
 
                 echo "Previous build images deleted from Jenkins machine."
                 '''
