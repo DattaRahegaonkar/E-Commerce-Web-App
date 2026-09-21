@@ -5,6 +5,8 @@ apiVersion: apps/v1
 metadata:
   name: mongo-deployment
   namespace: ecommerce
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 
 spec:
   replicas: 1
