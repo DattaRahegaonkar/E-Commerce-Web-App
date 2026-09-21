@@ -1,7 +1,0 @@
-
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: ecommerce
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"

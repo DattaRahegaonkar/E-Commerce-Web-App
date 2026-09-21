@@ -5,8 +5,6 @@ apiVersion: apps/v1
 metadata:
   name: mongo-deployment
   namespace: ecommerce
-  annotations:
-    argocd.argoproj.io/sync-wave: "5"
 
 spec:
   replicas: 1
@@ -88,8 +86,6 @@ kind: Job
 metadata:
   name: mongodb-create-app-user
   namespace: ecommerce
-  annotations:
-    argocd.argoproj.io/sync-wave: "6"
 
 spec:
   backoffLimit: 10

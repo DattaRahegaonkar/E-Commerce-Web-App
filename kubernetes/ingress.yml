@@ -4,8 +4,6 @@ kind: Ingress
 metadata:
   name: ecommerce-ingress
   namespace: ecommerce
-  annotations:
-    argocd.argoproj.io/sync-wave: "8"
 
 spec:
   ingressClassName: nginx
