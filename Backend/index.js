@@ -44,7 +44,7 @@ app.use(cookieParser()); // Add cookie-parser middleware
 // Parse ALLOWED_ORIGINS from environment variable
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : ['http://localhost:5173', 'https://ecommercesignuplogin.netlify.app']; // fallback
+  : ['http://localhost:5173', 'http://ecommerce.rahegaonkar.online', 'https://ecommerce.rahegaonkar.online']; // fallback
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -94,9 +94,16 @@ app.post("/api/signup", validateSignup, async (req, res) => {
     const token = generateToken(result._id);
     
     // Set token in HTTP-only cookie
+    // res.cookie('token', token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production', // secure in production
+    //   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    // });
+
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // secure in production
+      secure: false,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -132,9 +139,16 @@ app.post("/api/login", validateLogin, async (req, res) => {
       const token = generateToken(user._id);
       
       // Set token in HTTP-only cookie
+      // res.cookie('token', token, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV === 'production', // secure in production
+      //   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      // });
+
       res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // secure in production
+        secure: false,
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
       
