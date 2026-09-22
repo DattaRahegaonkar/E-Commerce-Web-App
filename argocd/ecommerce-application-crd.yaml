@@ -5,6 +5,16 @@ metadata:
   name: ecommerce-app
   namespace: argocd
 
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: |
+      backend=dattarahegaonkar09/ecommerce-app-backend,
+      frontend=dattarahegaonkar09/ecommerce-app-frontend
+
+    argocd-image-updater.argoproj.io/backend.update-strategy: semver
+    argocd-image-updater.argoproj.io/frontend.update-strategy: semver
+
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/argocd-image-update-github-creds
+
 spec:
   project: ecommerce-project
 
@@ -16,7 +26,8 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: ecommerce
-    
+
+  # Enable automatic deployment after Image Updater changes the source
   # syncPolicy:
   #   automated:
   #     prune: true
