@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - secret-sync-rbac.yaml
+  - mongo-pvc.yml
+  - mongodb-secret-provider.yaml
+  - backend-secret-provider.yaml
+  - frontend-secret-provider.yaml
+  - mongo-service.yml
+  - backend-service.yml
+  - frontend-service.yml
+  - mongo-deployment.yml
+  - backend-deployment.yml
+  - frontend-deployment.yml
+  - ingress.yml
+  
