@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: backend-container
-          image: dattarahegaonkar09/ecommerce-app-backend:v2.0.0
+          image: dattarahegaonkar09/ecommerce-app-backend:v4.0.0
           ports:
             - containerPort: 8081
 
