@@ -15,56 +15,69 @@ pipeline {
             }
         }
 
-        stage("Building Docker Images") {
-            steps {
-                sh '''
-                docker build -t ecommerce-app-backend:v${BUILD_NUMBER}.0.0 Backend/
-                docker build -t ecommerce-app-frontend:v${BUILD_NUMBER}.0.0 Frontend/
-                '''
-            }
-        }
+        stage("Docker Build & Push") {
 
-        stage("Tagging Docker Images") {
-            steps {
-                sh '''
-                docker tag ecommerce-app-backend:v${BUILD_NUMBER}.0.0 dattarahegaonkar09/ecommerce-app-backend:v${BUILD_NUMBER}.0.0
-                docker tag ecommerce-app-frontend:v${BUILD_NUMBER}.0.0 dattarahegaonkar09/ecommerce-app-frontend:v${BUILD_NUMBER}.0.0
-                '''
-            }
-        }
-
-        stage("Pushing Docker Images") {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    sh '''
-                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-                    docker push dattarahegaonkar09/ecommerce-app-backend:v${BUILD_NUMBER}.0.0
-                    docker push dattarahegaonkar09/ecommerce-app-frontend:v${BUILD_NUMBER}.0.0
-                    '''
+            when {
+                anyOf {
+                    changeset "Backend/**"
+                    changeset "Frontend/**"
                 }
             }
-        }
 
-        stage("Delete Previous Images") { 
-            steps { 
-                sh '''
-                echo "Deleting previous Docker images from Jenkins machine..."
-                
-                PREVIOUS_BUILD=$((BUILD_NUMBER - 1))
+            stages {
 
-                docker rmi ecommerce-app-backend:v${PREVIOUS_BUILD}.0.0 || true
-                docker rmi ecommerce-app-frontend:v${PREVIOUS_BUILD}.0.0 || true
+                stage("Building Docker Images") {
+                    steps {
+                        sh '''
+                        docker build -t ecommerce-app-backend:v${BUILD_NUMBER}.0.0 Backend/
+                        docker build -t ecommerce-app-frontend:v${BUILD_NUMBER}.0.0 Frontend/
+                        '''
+                    }
+                }
 
-                docker rmi dattarahegaonkar09/ecommerce-app-backend:v${PREVIOUS_BUILD}.0.0 || true
-                docker rmi dattarahegaonkar09/ecommerce-app-frontend:v${PREVIOUS_BUILD}.0.0 || true
+                stage("Tagging Docker Images") {
+                    steps {
+                        sh '''
+                        docker tag ecommerce-app-backend:v${BUILD_NUMBER}.0.0 dattarahegaonkar09/ecommerce-app-backend:v${BUILD_NUMBER}.0.0
+                        docker tag ecommerce-app-frontend:v${BUILD_NUMBER}.0.0 dattarahegaonkar09/ecommerce-app-frontend:v${BUILD_NUMBER}.0.0
+                        '''
+                    }
+                }
 
-                echo "Previous build images deleted from Jenkins machine."
-                '''
+                stage("Pushing Docker Images") {
+                    steps {
+                        withCredentials([usernamePassword(
+                            credentialsId: 'dockerhub-credentials',
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )]) {
+                            sh '''
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+                            docker push dattarahegaonkar09/ecommerce-app-backend:v${BUILD_NUMBER}.0.0
+                            docker push dattarahegaonkar09/ecommerce-app-frontend:v${BUILD_NUMBER}.0.0
+                            '''
+                        }
+                    }
+                }
+
+                stage("Delete Previous Images") {
+                    steps {
+                        sh '''
+                        echo "Deleting previous Docker images from Jenkins machine..."
+
+                        PREVIOUS_BUILD=$((BUILD_NUMBER - 1))
+
+                        docker rmi ecommerce-app-backend:v${PREVIOUS_BUILD}.0.0 || true
+                        docker rmi ecommerce-app-frontend:v${PREVIOUS_BUILD}.0.0 || true
+
+                        docker rmi dattarahegaonkar09/ecommerce-app-backend:v${PREVIOUS_BUILD}.0.0 || true
+                        docker rmi dattarahegaonkar09/ecommerce-app-frontend:v${PREVIOUS_BUILD}.0.0 || true
+
+                        echo "Previous build images deleted from Jenkins machine."
+                        '''
+                    }
+                }
             }
         }
     }
