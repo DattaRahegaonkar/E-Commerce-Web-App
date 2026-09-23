@@ -10,8 +10,8 @@ metadata:
       backend=dattarahegaonkar09/ecommerce-app-backend,
       frontend=dattarahegaonkar09/ecommerce-app-frontend
 
-    argocd-image-updater.argoproj.io/backend.update-strategy: semver
-    argocd-image-updater.argoproj.io/frontend.update-strategy: semver
+    argocd-image-updater.argoproj.io/backend.update-strategy: latest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: latest
 
     argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/argocd-image-update-github-creds
 
