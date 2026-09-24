@@ -4,6 +4,8 @@ apiVersion: apps/v1
 metadata:
   name: frontend-deployment
   namespace: ecommerce
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
   
 spec:
   replicas: 1
