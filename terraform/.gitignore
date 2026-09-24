@@ -5,3 +5,4 @@ terraform.tfstate.backup
 
 baston-key
 baston-key.pub
+eks-cluster.yaml

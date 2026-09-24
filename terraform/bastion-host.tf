@@ -16,13 +16,13 @@ resource "aws_security_group" "bastion-sg-tf" {
     from_port = 22
     to_port   = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["152.58.33.111/32"]
   }
 
   ingress {
-    description = "Jenkins"
-    from_port = 8080
-    to_port   = 8080
+    description = "https"
+    from_port = 443
+    to_port   = 443
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
