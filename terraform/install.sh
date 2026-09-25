@@ -65,3 +65,37 @@ sudo systemctl start jenkins
 # add the jenkins user to the docker group to run docker commands without sudo
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
+
+# Install Nginx
+sudo apt update
+sudo apt install nginx -y
+
+# Enable and start Nginx
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+# Configure Nginx as a reverse proxy for Jenkins
+sudo tee /etc/nginx/sites-available/jenkins > /dev/null <<'EOF'
+server {
+    listen 80;
+    server_name jenkins.rahegaonkar.online;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+EOF
+
+# Disable default Nginx site
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Enable Jenkins site
+sudo ln -sf /etc/nginx/sites-available/jenkins /etc/nginx/sites-enabled/jenkins
+
+# Test configuration and reload Nginx
+sudo nginx -t && sudo systemctl reload nginx
