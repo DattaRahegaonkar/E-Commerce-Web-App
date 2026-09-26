@@ -1,4 +1,4 @@
 kustomize:
   images:
-  - dattarahegaonkar09/ecommerce-app-backend:v7.0.0
-  - dattarahegaonkar09/ecommerce-app-frontend:v7.0.0
+  - dattarahegaonkar09/ecommerce-app-backend:v5.0.0
+  - dattarahegaonkar09/ecommerce-app-frontend:v5.0.0
