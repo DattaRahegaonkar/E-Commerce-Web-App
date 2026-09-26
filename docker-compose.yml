@@ -41,6 +41,7 @@ services:
     restart: unless-stopped
     environment:
       - BACKEND_URL=
+      - RAZORPAY_KEY_ID=rzp_test_TggpRkx7bWzAat
     depends_on:
       backend:
         condition: service_healthy
