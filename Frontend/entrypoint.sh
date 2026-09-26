@@ -1,10 +1,14 @@
 #!/bin/sh
 
-# Replace the empty BACKEND_URL value in config.js with the actual backend URL
-# In Docker, BACKEND_URL env var is set (e.g. http://backend-container:8081)
-# Locally, config.js stays as "" and Vite proxy handles routing
+# Inject BACKEND_URL at runtime into config.js
 if [ -n "${BACKEND_URL}" ]; then
   sed -i "s|BACKEND_URL: \"\"|BACKEND_URL: \"${BACKEND_URL}\"|g" \
+    /usr/share/nginx/html/config.js
+fi
+
+# Inject RAZORPAY_KEY_ID at runtime into config.js
+if [ -n "${RAZORPAY_KEY_ID}" ]; then
+  sed -i "s|RAZORPAY_KEY_ID: \"\"|RAZORPAY_KEY_ID: \"${RAZORPAY_KEY_ID}\"|g" \
     /usr/share/nginx/html/config.js
 fi
 

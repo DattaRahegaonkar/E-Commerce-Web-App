@@ -1,3 +1,4 @@
 window._env_ = {
-  BACKEND_URL: ""
+  BACKEND_URL: "",
+  RAZORPAY_KEY_ID: ""
 };

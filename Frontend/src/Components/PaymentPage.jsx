@@ -50,7 +50,7 @@ const PaymentPage = () => {
 
       // Step 2: Open Razorpay checkout popup
       const options = {
-        key: initiateData.keyId,
+        key: initiateData.keyId || window._env_?.RAZORPAY_KEY_ID || import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: initiateData.amount,
         currency: initiateData.currency,
         name: 'E-Commerce App',
