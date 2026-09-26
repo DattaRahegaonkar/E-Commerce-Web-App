@@ -11,6 +11,7 @@ const Order = require("./db/Order");
 const Payment = require("./db/Payment");
 const { generateToken, authenticateToken } = require("./middleware/auth");
 const { validateSignup, validateLogin, validateProduct, validateProductId } = require("./middleware/validators");
+const errorHandler = require("./middleware/errorHandler");
 
 // Mock admin notification function
 const sendAdminNotification = async (order) => {
@@ -92,17 +93,10 @@ app.post("/api/signup", validateSignup, async (req, res) => {
 
     // Generate JWT token
     const token = generateToken(result._id);
-    
-    // Set token in HTTP-only cookie
-    // res.cookie('token', token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === 'production', // secure in production
-    //   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    // });
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
@@ -137,17 +131,10 @@ app.post("/api/login", validateLogin, async (req, res) => {
       
       // Generate JWT token
       const token = generateToken(user._id);
-      
-      // Set token in HTTP-only cookie
-      // res.cookie('token', token, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === 'production', // secure in production
-      //   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      // });
 
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.COOKIE_SECURE === 'true',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
@@ -171,9 +158,10 @@ app.post("/api/login", validateLogin, async (req, res) => {
 app.post("/api/logout", (req, res) => {
   res.cookie('token', '', {
     httpOnly: true,
+    secure: process.env.COOKIE_SECURE === 'true',
     expires: new Date(0)
   });
-  
+
   res.status(200).json({ message: "Logged out successfully" });
 });
 
@@ -263,65 +251,6 @@ app.patch("/api/update/:id", authenticateToken, validateProductId, validateProdu
   }
 });
 
-// Handle GET requests to /update/:id - redirect to frontend
-
-// Add endpoint to get a single product by ID
-app.get("/api/product/:id", validateProductId, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    
-    if (!product) {
-      return res.status(404).json({ msg: "Product not found" });
-    }
-    
-    res.json(product);
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    res.status(500).json({ msg: "Error fetching product" });
-  }
-});
-
-// Add API prefix routes for cleaner separation
-app.get("/api/product/:id", validateProductId, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    
-    if (!product) {
-      return res.status(404).json({ msg: "Product not found" });
-    }
-    
-    res.json(product);
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    res.status(500).json({ msg: "Error fetching product" });
-  }
-});
-
-app.patch("/api/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, price, category, company, stock } = req.body;
-
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    const updatedProduct = await Product.findByIdAndUpdate(
-      id,
-      { name, price, category, company, stock },
-      { new: true }
-    );
-
-    res.json(updatedProduct);
-  } catch (error) {
-    console.error("Update product error:", error);
-    res.status(500).json({ message: "Error updating product" });
-  }
-});
-
 app.delete("/api/delete/:id", authenticateToken, validateProductId, async (req, res) => {
   try {
     // Check if user is admin
@@ -345,27 +274,26 @@ app.delete("/api/delete/:id", authenticateToken, validateProductId, async (req, 
   }
 });
 
-// Add delete endpoint - any authenticated user can delete any product
-app.delete("/api/delete/:id", authenticateToken, validateProductId, async (req, res) => {
+// Handle GET requests to /update/:id - redirect to frontend
+
+// Add endpoint to get a single product by ID
+app.get("/api/product/:id", validateProductId, async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Find the product
     const product = await Product.findById(id);
-
+    
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ msg: "Product not found" });
     }
     
-    // Delete the product
-    await Product.findByIdAndDelete(id);
-    
-    res.json({ message: "Product deleted successfully" });
+    res.json(product);
   } catch (error) {
-    console.error("Delete product error:", error);
-    res.status(500).json({ message: "Error deleting product" });
+    console.error("Error fetching product:", error);
+    res.status(500).json({ msg: "Error fetching product" });
   }
 });
+
+
 
 // ==================== CART ENDPOINTS ====================
 
@@ -708,7 +636,6 @@ app.post("/api/payment/initiate", authenticateToken, async (req, res) => {
       orderId: order.orderId,
       amount: order.totalAmount,
       currency: 'INR',
-      paymentUrl: `http://localhost:8081/api/payment/mock-gateway/${orderId}`,
       transactionId: `TXN-${Date.now()}`
     };
 
@@ -717,40 +644,6 @@ app.post("/api/payment/initiate", authenticateToken, async (req, res) => {
     console.error("Initiate payment error:", error);
     res.status(500).json({ message: "Error initiating payment" });
   }
-});
-
-// Mock payment gateway
-app.get("/api/payment/mock-gateway/:orderId", async (req, res) => {
-  const { orderId } = req.params;
-
-  // Simple HTML form to simulate payment
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Mock Payment Gateway</title>
-        <style>
-            body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
-            .payment-form { background: #f9f9f9; padding: 20px; border-radius: 8px; }
-            button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-            button:hover { background: #45a049; }
-        </style>
-    </head>
-    <body>
-        <div class="payment-form">
-            <h2>Mock Payment Gateway</h2>
-            <p>Order ID: ${orderId}</p>
-            <p>Amount: ₹${Math.floor(Math.random() * 1000) + 100}</p>
-            <form action="/api/payment/verify" method="POST">
-                <input type="hidden" name="orderId" value="${orderId}">
-                <button type="submit">Pay Now (Simulated)</button>
-            </form>
-        </div>
-    </body>
-    </html>
-  `;
-
-  res.send(html);
 });
 
 // Verify payment
@@ -990,6 +883,34 @@ app.get("/api/admin/orders", authenticateToken, async (req, res) => {
   }
 });
 
+// Get single order details (admin only)
+app.get("/api/admin/orders/:orderId", authenticateToken, async (req, res) => {
+  try {
+    const user = await Users.findById(req.user.id);
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId)
+      .populate('userId', 'name email')
+      .populate('items.productId');
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Get payment details for this order
+    const payment = await Payment.findOne({ orderId: order._id });
+
+    res.json({ order, payment });
+  } catch (error) {
+    console.error("Get admin order detail error:", error);
+    res.status(500).json({ message: "Error fetching order details" });
+  }
+});
+
 // Update order status (admin only)
 app.put("/api/admin/orders/:orderId/status", authenticateToken, async (req, res) => {
   try {
@@ -1105,6 +1026,53 @@ app.get("/api/admin/dashboard", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Error fetching dashboard stats" });
   }
 });
+
+// Promote a user to admin (admin only)
+app.post("/api/admin/create-admin", authenticateToken, async (req, res) => {
+  try {
+    // Check if the caller is an admin
+    const caller = await Users.findById(req.user.id);
+    if (!caller || caller.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Find the target user
+    const targetUser = await Users.findOne({ email: email.toLowerCase().trim() });
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found with that email" });
+    }
+
+    // Check if already admin
+    if (targetUser.role === 'admin') {
+      return res.status(400).json({ message: "User is already an admin" });
+    }
+
+    // Promote to admin
+    targetUser.role = 'admin';
+    await targetUser.save();
+
+    const userResponse = targetUser.toObject();
+    delete userResponse.password;
+
+    console.log(`✅ User promoted to admin: ${targetUser.email} by ${caller.email}`);
+
+    res.status(200).json({
+      message: `${targetUser.name} has been promoted to admin successfully`,
+      user: userResponse
+    });
+  } catch (error) {
+    console.error("Promote admin error:", error);
+    res.status(500).json({ message: "Error promoting user to admin" });
+  }
+});
+
+// Centralized error handling middleware (must be after all routes)
+app.use(errorHandler);
 
 const port = process.env.PORT || 3000
 
