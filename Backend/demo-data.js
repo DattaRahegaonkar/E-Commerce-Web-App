@@ -24,8 +24,8 @@ const products = [
   { name: 'Dune',                     price: 18,   category: 'Books',       company: 'Ace Books',    stock: 55, description: 'Epic science fiction novel by Frank Herbert' },
   { name: 'Dyson V15 Vacuum',         price: 699,  category: 'Home',        company: 'Dyson',        stock: 10, description: 'Cordless vacuum with laser dust detection' },
   { name: 'Instant Pot Duo 7-in-1',  price: 89,   category: 'Home',        company: 'Instant Pot',  stock: 22, description: 'Multi-cooker that replaces 7 kitchen appliances' },
-  { name: 'Yoga Mat Premium',         price: 49,   category: 'Sports',      company: 'Manduka',      stock: 35, description: 'Non-slip yoga mat with superior cushioning' },
-  { name: 'Dyson Airwrap Complete',   price: 599,  category: 'Beauty',      company: 'Dyson',        stock: 12, description: 'Multi-styling tool for curls, waves, and smoothing' }
+  { name: 'Yoga Mat Premium',         price: 49,   category: 'Other',       company: 'Manduka',      stock: 35, description: 'Non-slip yoga mat with superior cushioning' },
+  { name: 'Dyson Airwrap Complete',   price: 599,  category: 'Other',       company: 'Dyson',        stock: 12, description: 'Multi-styling tool for curls, waves, and smoothing' }
 ];
 
 async function createUsers() {
@@ -65,7 +65,10 @@ async function clearData() {
 }
 
 async function main() {
-  await mongoose.connect(process.env.MONGO_URI);
+  await mongoose.connect(process.env.MONGO_URI).catch(err => {
+    console.error('❌ MongoDB connection failed:', err.message);
+    process.exit(1);
+  });
   console.log('✅ Connected to MongoDB\n');
 
   const args = process.argv.slice(2);

@@ -1,6 +1,8 @@
 // Backend/middleware/validators.js
 const { body, param, validationResult } = require('express-validator');
 
+const VALID_CATEGORIES = ['Electronics', 'Clothing', 'Books', 'Home', 'Other'];
+
 // Reusable validation results middleware
 const checkValidationResults = (req, res, next) => {
   const errors = validationResult(req);
@@ -32,7 +34,7 @@ const validateLogin = [
   checkValidationResults
 ];
 
-// Product validation
+// Validation for creating a new product — all fields required, category strictly validated
 const validateProduct = [
   body('name')
     .trim()
@@ -44,7 +46,29 @@ const validateProduct = [
   body('category')
     .trim()
     .not().isEmpty().withMessage('Category is required')
-    .isIn(['Electronics', 'Clothing', 'Books', 'Home', 'Other']).withMessage('Invalid category'),
+    .isIn(VALID_CATEGORIES).withMessage('Invalid category'),
+  body('company')
+    .trim()
+    .not().isEmpty().withMessage('Company name is required'),
+  body('stock')
+    .optional()
+    .isInt({ min: 0 }).withMessage('Stock cannot be negative'),
+  checkValidationResults
+];
+
+// Validation for updating a product — category is optional; only validate it if provided
+const validateProductUpdate = [
+  body('name')
+    .trim()
+    .not().isEmpty().withMessage('Product name is required')
+    .isLength({ max: 100 }).withMessage('Product name cannot exceed 100 characters'),
+  body('price')
+    .isNumeric().withMessage('Price must be a number')
+    .custom((value) => value >= 0).withMessage('Price cannot be negative'),
+  body('category')
+    .optional()
+    .trim()
+    .isIn(VALID_CATEGORIES).withMessage('Invalid category'),
   body('company')
     .trim()
     .not().isEmpty().withMessage('Company name is required'),
@@ -64,6 +88,7 @@ module.exports = {
   validateSignup,
   validateLogin,
   validateProduct,
+  validateProductUpdate,
   validateProductId,
   checkValidationResults
 };

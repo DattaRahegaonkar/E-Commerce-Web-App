@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const bcrypt = require('bcryptjs');
+const crypto = require("crypto");
+const Razorpay = require("razorpay");
 require("./db/config");
 const app = express();
 const Users = require("./db/User");
@@ -10,8 +11,13 @@ const Cart = require("./db/Cart");
 const Order = require("./db/Order");
 const Payment = require("./db/Payment");
 const { generateToken, authenticateToken } = require("./middleware/auth");
-const { validateSignup, validateLogin, validateProduct, validateProductId } = require("./middleware/validators");
+const { validateSignup, validateLogin, validateProduct, validateProductUpdate, validateProductId } = require("./middleware/validators");
 const errorHandler = require("./middleware/errorHandler");
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 // Mock admin notification function
 const sendAdminNotification = async (order) => {
@@ -63,12 +69,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Debug CORS
-app.use((req, res, next) => {
-  console.log('Request Origin:', req.headers.origin);
-  console.log('Request Method:', req.method);
-  next();
-});
+// Debug CORS - development only
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log('Request Origin:', req.headers.origin);
+    console.log('Request Method:', req.method);
+    next();
+  });
+}
 
 app.get("/", (req, res) => {
   res.send("App Running !!!")
@@ -165,6 +173,20 @@ app.post("/api/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+// Get current authenticated user (used by frontend auth checks)
+app.get("/api/me", authenticateToken, async (req, res) => {
+  try {
+    const user = await Users.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ user });
+  } catch (error) {
+    console.error("Get me error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Protected route - requires admin authentication
 app.post("/api/add", authenticateToken, validateProduct, async (req, res) => {
   try {
@@ -190,36 +212,53 @@ app.post("/api/add", authenticateToken, validateProduct, async (req, res) => {
 });
 
 app.get("/api/show", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-  let products = await Product.find({});
+    const [products, total] = await Promise.all([
+      Product.find({}).skip(skip).limit(limit),
+      Product.countDocuments()
+    ]);
 
-  res.send(products);
-
+    res.json({
+      products,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Error fetching products" });
+  }
 });
 
 app.get("/api/search/:key", async (req, res) => {
-  let result = await Product.find({
-    $or: [
-      {
-        name: { $regex: req.params.key, $options: "i" },
-      },
-      {
-        company: { $regex: req.params.key },
-      },
-      {
-        category: { $regex: req.params.key },
-      },
-    ],
-  });
+  try {
+    let result = await Product.find({
+      $or: [
+        { name:     { $regex: req.params.key, $options: "i" } },
+        { company:  { $regex: req.params.key, $options: "i" } },
+        { category: { $regex: req.params.key, $options: "i" } },
+      ],
+    });
 
-  if (result.length == 0) {
-    return res.status(400).json({ msg: "result not found" });
+    if (result.length === 0) {
+      return res.status(400).json({ msg: "result not found" });
+    }
+
+    res.send(result);
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).json({ message: "Error searching products" });
   }
-
-  res.send(result);
 });
 
-app.patch("/api/update/:id", authenticateToken, validateProductId, validateProduct, async (req, res) => {
+app.patch("/api/update/:id", authenticateToken, validateProductId, validateProductUpdate, async (req, res) => {
   try {
     // Check if user is admin
     const user = await Users.findById(req.user.id);
@@ -570,7 +609,7 @@ app.put("/api/orders/:orderId/cancel", authenticateToken, async (req, res) => {
     const { orderId } = req.params;
 
     const order = await Order.findOne({
-      _id: orderId,
+      orderId: orderId,
       userId: req.user.id
     });
 
@@ -622,7 +661,7 @@ app.post("/api/payment/initiate", authenticateToken, async (req, res) => {
     const { orderId } = req.body;
 
     const order = await Order.findOne({
-      _id: orderId,
+      orderId: orderId,
       userId: req.user.id,
       paymentMethod: 'online'
     });
@@ -631,15 +670,20 @@ app.post("/api/payment/initiate", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Simulate payment gateway response
-    const paymentResponse = {
-      orderId: order.orderId,
-      amount: order.totalAmount,
+    // Create Razorpay order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(order.totalAmount * 100), // amount in paise
       currency: 'INR',
-      transactionId: `TXN-${Date.now()}`
-    };
+      receipt: order.orderId,
+    });
 
-    res.json(paymentResponse);
+    res.json({
+      orderId: order.orderId,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: process.env.RAZORPAY_KEY_ID
+    });
   } catch (error) {
     console.error("Initiate payment error:", error);
     res.status(500).json({ message: "Error initiating payment" });
@@ -649,62 +693,56 @@ app.post("/api/payment/initiate", authenticateToken, async (req, res) => {
 // Verify payment
 app.post("/api/payment/verify", authenticateToken, async (req, res) => {
   try {
-    const { orderId, paymentMethod, transactionId, upiId, cardNumber, bank } = req.body;
-
-    console.log('Payment verification request:', {
+    const {
       orderId,
-      paymentMethod,
-      transactionId,
-      upiId: upiId ? 'provided' : 'not provided',
-      cardNumber: cardNumber ? 'provided' : 'not provided',
-      bank: bank ? 'provided' : 'not provided'
-    });
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature
+    } = req.body;
 
-    // Find the order
-    const order = await Order.findOne({ orderId });
+    // Step 1: Verify Razorpay signature
+    const body = razorpayOrderId + "|" + razorpayPaymentId;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature !== razorpaySignature) {
+      console.log('Signature mismatch — payment verification failed');
+      return res.status(400).json({ message: "Payment verification failed" });
+    }
+
+    // Step 2: Find order — must belong to requesting user
+    const order = await Order.findOne({ orderId, userId: req.user.id });
     if (!order) {
-      console.log('Order not found:', orderId);
       return res.status(404).json({ message: "Order not found" });
     }
 
-    console.log('Found order:', { orderId: order.orderId, status: order.orderStatus });
-
-    // Update order status
+    // Step 3: Update order status
     order.paymentStatus = 'paid';
     order.orderStatus = 'confirmed';
     await order.save();
 
-    console.log('Order updated:', { orderId: order.orderId, paymentStatus: order.paymentStatus, orderStatus: order.orderStatus });
-
-    // Update payment record with additional details
-    const paymentUpdate = await Payment.findOneAndUpdate(
+    // Step 4: Update payment record
+    await Payment.findOneAndUpdate(
       { orderId: order._id },
       {
         status: 'completed',
-        transactionId: transactionId || `TXN-${Date.now()}`,
-        paymentGateway: paymentMethod,
-        metadata: {
-          upiId: paymentMethod === 'upi' ? upiId : undefined,
-          cardLastFour: paymentMethod === 'card' ? cardNumber?.slice(-4) : undefined,
-          bank: paymentMethod === 'netbanking' ? bank : undefined
-        }
+        transactionId: razorpayPaymentId,
+        paymentGateway: 'razorpay',
+        paymentDate: new Date(),
+        metadata: { razorpayOrderId, razorpayPaymentId }
       },
       { new: true }
     );
 
-    console.log('Payment record updated:', paymentUpdate ? 'success' : 'failed');
-
-    // Send admin notification
+    // Notify admin
     await sendAdminNotification(order);
 
-    console.log('Payment verified and order updated successfully, redirecting...');
-
-    // Return JSON response for better frontend handling
     res.json({
       success: true,
       message: "Payment verified successfully",
-      orderId: order.orderId,
-      redirectUrl: `http://localhost:5173/order-confirmation/${orderId}`
+      orderId: order.orderId
     });
 
   } catch (error) {
