@@ -16,7 +16,7 @@ resource "aws_security_group" "bastion-sg-tf" {
     from_port = 22
     to_port   = 22
     protocol = "tcp"
-    cidr_blocks = ["152.58.33.111/32"]
+    cidr_blocks = ["0.0.0.0/0"]  # before terraform apply first put  here you ip so the file can copy on bastion
   }
 
   ingress {
