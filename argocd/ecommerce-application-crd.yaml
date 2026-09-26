@@ -27,8 +27,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: ecommerce
 
-  # Enable automatic deployment after Image Updater changes the source
-  # syncPolicy:
-  #   automated:
-  #     prune: true
-  #     selfHeal: true
+# Enable automatic deployment after Image Updater changes the source
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      
