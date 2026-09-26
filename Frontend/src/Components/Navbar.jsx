@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, Search } from "lucide-react";
 import Cart from "./Cart";
 import "./Navbar.css";
 
@@ -15,9 +15,18 @@ const Navbar = () => {
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [showCart, setShowCart] = useState(false);
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/signup");
+  const logout = async () => {
+    try {
+      await fetch(`${apiBaseUrl}/api/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.clear();
+      navigate("/signup");
+    }
   };
 
   useEffect(() => {
@@ -44,7 +53,11 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    const term = search.trim();
+    if (!term) return;
+    navigate(`/?search=${encodeURIComponent(term)}`);
     setSearch("");
+    setIsOpen(false);
   };
 
   const toggleCart = () => {
@@ -111,21 +124,22 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Search Input (Hidden on small screens) */}
+          {/* Search Input — authenticated users, desktop only */}
           {auth && (
             <div className="hidden md:flex">
               <form className="flex items-center" onSubmit={handleSearch}>
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search products..."
                   className="h-10 w-48 sm:w-56 lg:w-64 rounded-full pl-4 sm:pl-5 border border-gray-700 bg-gray-800 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none transition text-sm sm:text-base"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 <button
                   type="submit"
-                  className="ml-2 px-3 sm:px-4 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition text-sm sm:text-base"
+                  className="ml-2 px-3 sm:px-4 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition text-sm sm:text-base flex items-center gap-1"
                 >
+                  <Search size={16} />
                   Search
                 </button>
               </form>
@@ -185,6 +199,24 @@ const Navbar = () => {
               <NavLink to="/profile" className="block nav-link text-gray-200 hover:text-purple-400">
                 Profile
               </NavLink>
+
+              {/* Mobile Search — authenticated users only */}
+              <form className="flex items-center gap-2 px-2" onSubmit={handleSearch}>
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="flex-1 h-10 rounded-full pl-4 border border-gray-700 bg-gray-800 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none transition text-sm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition text-sm"
+                >
+                  <Search size={16} />
+                </button>
+              </form>
+
               <NavLink
                 to="/signup"
                 className="block nav-link text-red-400 hover:text-red-500 font-semibold"

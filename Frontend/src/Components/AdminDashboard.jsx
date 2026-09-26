@@ -10,7 +10,8 @@ import {
   Truck,
   XCircle,
   Eye,
-  Edit
+  Edit,
+  UserCheck
 } from 'lucide-react';
 
 const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
@@ -24,6 +25,9 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [promoteEmail, setPromoteEmail] = useState('');
+  const [promoteStatus, setPromoteStatus] = useState({ message: '', isError: false });
+  const [promoteLoading, setPromoteLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +71,37 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error updating order status:', error);
+    }
+  };
+
+  const promoteUser = async (e) => {
+    e.preventDefault();
+    if (!promoteEmail.trim()) return;
+
+    setPromoteLoading(true);
+    setPromoteStatus({ message: '', isError: false });
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/admin/create-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: promoteEmail.trim() }),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setPromoteStatus({ message: result.message, isError: false });
+        setPromoteEmail('');
+      } else {
+        setPromoteStatus({ message: result.message || 'Failed to promote user', isError: true });
+      }
+    } catch (error) {
+      console.error('Promote user error:', error);
+      setPromoteStatus({ message: 'Something went wrong. Please try again.', isError: true });
+    } finally {
+      setPromoteLoading(false);
     }
   };
 
@@ -282,6 +317,60 @@ const AdminDashboard = () => {
               <Package size={48} className="mx-auto text-gray-600 mb-4" />
               <p className="text-gray-400">No orders found</p>
             </div>
+          )}
+        </motion.div>
+
+        {/* Promote User to Admin */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-gray-800 rounded-xl p-6 mt-6"
+        >
+          <div className="flex items-center mb-4">
+            <UserCheck className="mr-2 text-purple-400" size={24} />
+            <h2 className="text-2xl font-semibold">Promote User to Admin</h2>
+          </div>
+          <p className="text-gray-400 text-sm mb-4">
+            Enter the email address of a registered user to grant them admin access.
+          </p>
+
+          <form onSubmit={promoteUser} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              value={promoteEmail}
+              onChange={(e) => {
+                setPromoteEmail(e.target.value);
+                setPromoteStatus({ message: '', isError: false });
+              }}
+              placeholder="Enter user's email address"
+              className="flex-1 p-3 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-white placeholder-gray-400"
+              required
+            />
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={promoteLoading || !promoteEmail.trim()}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              {promoteLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+              ) : (
+                <UserCheck size={18} />
+              )}
+              {promoteLoading ? 'Promoting...' : 'Promote to Admin'}
+            </motion.button>
+          </form>
+
+          {promoteStatus.message && (
+            <motion.p
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-3 text-sm font-medium ${promoteStatus.isError ? 'text-red-400' : 'text-green-400'}`}
+            >
+              {promoteStatus.isError ? '❌' : '✅'} {promoteStatus.message}
+            </motion.p>
           )}
         </motion.div>
       </div>

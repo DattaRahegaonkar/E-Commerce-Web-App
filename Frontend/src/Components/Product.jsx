@@ -3,21 +3,22 @@ const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || 
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Plus } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
 
 const Product = () => {
   const [all, setAll] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   async function ShowProducts() {
     try {
       const response = await fetch(`${apiBaseUrl}/api/show`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        credentials: 'include' // Add credentials to include cookies with JWT token
+        credentials: 'include'
       });
 
       const result = await response.json();
@@ -28,9 +29,18 @@ const Product = () => {
   }
 
   useEffect(() => {
-    ShowProducts();
     getUserData();
   }, []);
+
+  // Handle search term coming from Navbar (authenticated users)
+  useEffect(() => {
+    const term = searchParams.get("search");
+    if (term) {
+      handleSearch(term);
+    } else {
+      ShowProducts();
+    }
+  }, [searchParams]);
 
   const getUserData = () => {
     const userData = localStorage.getItem('user');
@@ -80,25 +90,19 @@ const Product = () => {
           "Content-Type": "application/json",
           'Accept': 'application/json'
         },
-        credentials: 'include' // Add credentials to include cookies with JWT token
+        credentials: 'include'
       });
 
       const result = await response.json().catch(() => ({}));
-      
+
       if (!response.ok) {
-        console.error('Delete failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          result
-        });
         alert(`Failed to delete product: ${result.msg || 'Unknown error'}`);
         return;
       }
-      
-      // Refresh the product list on success
+
       ShowProducts();
       alert('Product deleted successfully');
-      
+
     } catch (error) {
       console.error('Delete error:', error);
       alert(`Error: ${error.message || 'Failed to delete product'}`);
@@ -106,20 +110,20 @@ const Product = () => {
   };
 
   const handleSearch = async (searchTerm) => {
-    if (searchTerm.trim() === "") {
-      ShowProducts(); // Show all products if search is empty
+    if (!searchTerm || searchTerm.trim() === "") {
+      ShowProducts();
       return;
     }
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/search/${searchTerm}`, {
-        credentials: 'include' // Add credentials to include cookies with JWT token
+        credentials: 'include'
       });
       if (response.ok) {
         const result = await response.json();
         setAll(result);
       } else {
-        setAll([]); // Clear results if search fails
+        setAll([]);
       }
     } catch (error) {
       console.error("Error searching products:", error);
@@ -139,7 +143,7 @@ const Product = () => {
         >
           Products
         </motion.h1>
-        
+
         {/* Instructions */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -147,25 +151,30 @@ const Product = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-gray-400 text-center"
         >
-          Click the Edit button on any product to update it, or Delete to remove it
+          {user?.role === 'admin'
+            ? 'Click the Edit button on any product to update it, or Delete to remove it'
+            : 'Search and explore our products, click on any product to view details'
+          }
         </motion.p>
 
-        {/* Search Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative flex justify-center px-4"
-        >
-          <input
-            type="text"
-            placeholder="Search products..."
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-full sm:w-1/2 p-3 bg-[#1e293b] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
-          />
-        </motion.div>
+        {/* Search Bar — only for non-authenticated users */}
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="relative flex justify-center px-4"
+          >
+            <input
+              type="text"
+              placeholder="Search products..."
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full sm:w-1/2 p-3 bg-[#1e293b] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            />
+          </motion.div>
+        )}
 
-        {/* Product Grid - Responsive Layout */}
+        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
           {all.map((product, index) => (
             <motion.div
@@ -206,7 +215,7 @@ const Product = () => {
                   by {product.company}
                 </p>
 
-                {/* Action Buttons - Show based on user role */}
+                {/* Action Buttons */}
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   {user?.role === 'admin' ? (
                     <>

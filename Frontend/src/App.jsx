@@ -19,6 +19,7 @@ import OrderConfirmation from "./Components/OrderConfirmation";
 import OrderHistory from "./Components/OrderHistory";
 import PaymentPage from "./Components/PaymentPage";
 import AdminDashboard from "./Components/AdminDashboard";
+import AdminOrderDetail from "./Components/AdminOrderDetail";
 
 const router = createBrowserRouter([
   {
@@ -141,16 +142,25 @@ const router = createBrowserRouter([
           </div>
         ),
       },
+      {
+        path: "/admin",
+        element: (
+          <div>
+            <Navbar />
+            <AdminDashboard />
+          </div>
+        ),
+      },
+      {
+        path: "/admin/order/:orderId",
+        element: (
+          <div>
+            <Navbar />
+            <AdminOrderDetail />
+          </div>
+        ),
+      },
     ],
-  },
-  {
-    path: "/admin",
-    element: (
-      <div>
-        <Navbar />
-        <AdminDashboard />
-      </div>
-    ),
   },
   {
     path: "*",

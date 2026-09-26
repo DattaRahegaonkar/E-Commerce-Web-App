@@ -1,3 +1,3 @@
 window._env_ = {
-  BACKEND_URL: "__BACKEND_URL__"
+  BACKEND_URL: ""
 };

@@ -93,8 +93,7 @@ const AddProduct = () => {
       const response = await fetch(`${apiBaseUrl}/api/add`, {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || JSON.parse(localStorage.getItem("user"))?.token || ""}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(productData),
         credentials: 'include'
