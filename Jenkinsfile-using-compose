@@ -12,6 +12,7 @@ pipeline {
         JWT_SECRET = "eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTc2MDUzNzA0NywiaWF0IjoxNzYwNTM3MDQ3fQ.odVmkDu1L3Y993485a3d0iI3ENYYgRizFldL5o-cM4A"
         MONGO_URI = "mongodb://ecommerceuser:ecommerce123@mongodb-container:27017/ecommerceDB"
         JWT_EXPIRES_IN = "7d"
+        COOKIE_SECURE = "false"
         ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:80,http://localhost,http://frontend-container,http://frontend-container:5173,http://frontend-container:80,http://34.246.218.216"
     }
 
@@ -61,22 +62,25 @@ pipeline {
 
         stage("Create .env") {
             steps {
-                sh '''
-                cat > Backend/.env <<EOF
+                withCredentials([string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')]) {
+                    sh '''
+                    cat > Backend/.env <<EOF
 PORT=$PORT
 NODE_ENV=$NODE_ENV
 JWT_SECRET=$JWT_SECRET
 MONGO_URI=$MONGO_URI
 JWT_EXPIRES_IN=$JWT_EXPIRES_IN
 ALLOWED_ORIGINS=$ALLOWED_ORIGINS
+COOKIE_SECURE=$COOKIE_SECURE
 EOF
 
-                cat > database/.env <<EOF
+                    cat > database/.env <<EOF
 MONGO_INITDB_ROOT_USERNAME=$MONGO_INITDB_ROOT_USERNAME
 MONGO_INITDB_ROOT_PASSWORD=$MONGO_INITDB_ROOT_PASSWORD
 MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
 EOF
-                '''
+                    '''
+                }
             }
         }
 
