@@ -71,6 +71,18 @@ spec:
                   name: backend-secret
                   key: COOKIE_SECURE
 
+            - name: RAZORPAY_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: RAZORPAY_KEY_ID
+
+            - name: RAZORPAY_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: RAZORPAY_KEY_SECRET
+
           volumeMounts:
             - mountPath: /mnt/secrets-store
               name: backend-secrets-store

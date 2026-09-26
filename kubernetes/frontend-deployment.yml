@@ -35,6 +35,12 @@ spec:
                 secretKeyRef:
                   name: frontend-secret
                   key: BACKEND_URL
+
+            - name: RAZORPAY_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-secret
+                  key: RAZORPAY_KEY_ID
           
           volumeMounts:
             - name: frontend-secrets-store
