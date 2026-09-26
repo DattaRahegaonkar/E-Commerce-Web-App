@@ -17,6 +17,7 @@ const Logout = () => {
         console.error('Logout error:', error);
       } finally {
         localStorage.clear();
+        window.dispatchEvent(new Event('authChange'));
         navigate('/signup');
       }
     };

@@ -236,7 +236,7 @@ const OrderHistory = () => {
                   {/* Cancel Order Button - Only show for pending/confirmed orders */}
                   {(order.orderStatus === 'pending' || order.orderStatus === 'confirmed') && (
                     <button
-                      onClick={() => handleCancelOrder(order._id)}
+                      onClick={() => handleCancelOrder(order.orderId)}
                       className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       <span>Cancel Order</span>

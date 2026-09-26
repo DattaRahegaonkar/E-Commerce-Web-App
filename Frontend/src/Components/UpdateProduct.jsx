@@ -1,8 +1,8 @@
-
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const UpdateProduct = () => {
   const { id } = useParams();

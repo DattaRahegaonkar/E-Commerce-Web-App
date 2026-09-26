@@ -1,7 +1,8 @@
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -52,6 +53,7 @@ const Signup = () => {
       // The backend now returns a user object within the response
       const userData = NewResult.user || NewResult;
       localStorage.setItem("user", JSON.stringify(userData));
+      window.dispatchEvent(new Event('authChange'));
       navigate("/");
     } catch (error) {
       console.error("Signup error:", error);

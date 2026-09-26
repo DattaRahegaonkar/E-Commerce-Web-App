@@ -267,6 +267,18 @@ const Checkout = () => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium mb-2">State</label>
+                  <input
+                    type="text"
+                    value={shippingAddress.state}
+                    onChange={(e) => handleInputChange('state', e.target.value)}
+                    className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none text-white"
+                    placeholder="Enter state"
+                  />
+                  {errors.state && <p className="text-red-400 text-sm mt-1">{errors.state}</p>}
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium mb-2">Pincode</label>
                   <input
                     type="text"
@@ -288,7 +300,7 @@ const Checkout = () => {
                     placeholder="Enter phone number"
                   />
                   {errors.phone && <p className="text-red-400 text-sm mt-1">{errors.phone}</p>}
-                  </div>
+                </div>
                 </div>
               )}
             </motion.div>

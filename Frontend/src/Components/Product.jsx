@@ -1,10 +1,10 @@
-// Use environment variable or empty string for relative URLs
-const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
-
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
+
+// Use environment variable or empty string for relative URLs
+const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const Product = () => {
   const [all, setAll] = useState([]);
@@ -22,7 +22,8 @@ const Product = () => {
       });
 
       const result = await response.json();
-      setAll(result);
+      // Handle paginated response shape { products, pagination }
+      setAll(result.products || result);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -60,6 +61,12 @@ const Product = () => {
       });
 
       const result = await response.json();
+
+      if (response.status === 401) {
+        // Not logged in — redirect to login
+        navigate('/login');
+        return;
+      }
 
       if (response.ok) {
         alert('Product added to cart successfully!');

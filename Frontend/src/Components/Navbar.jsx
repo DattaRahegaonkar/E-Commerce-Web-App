@@ -7,13 +7,34 @@ import "./Navbar.css";
 const apiBaseUrl = window._env_?.BACKEND_URL || import.meta.env.VITE_API_URL || '';
 
 const Navbar = () => {
-  const auth = localStorage.getItem("user");
-  const user = auth ? JSON.parse(auth) : null;
+  const [user, setUser] = useState(null);
+  const [auth, setAuth] = useState(null);
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [showCart, setShowCart] = useState(false);
+
+  const loadUser = () => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const parsed = JSON.parse(userData);
+      setUser(parsed);
+      setAuth(userData);
+    } else {
+      setUser(null);
+      setAuth(null);
+    }
+  };
+
+  useEffect(() => {
+    // Load on mount
+    loadUser();
+
+    // Listen for login/logout events dispatched by Login, Signup, Logout components
+    window.addEventListener('authChange', loadUser);
+    return () => window.removeEventListener('authChange', loadUser);
+  }, []);
 
   const logout = async () => {
     try {
@@ -25,6 +46,7 @@ const Navbar = () => {
       console.error('Logout error:', error);
     } finally {
       localStorage.clear();
+      window.dispatchEvent(new Event('authChange'));
       navigate("/signup");
     }
   };

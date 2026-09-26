@@ -79,15 +79,11 @@ const AddProduct = () => {
     setIsSubmitting(true);
     
     try {
-      const auth = JSON.parse(localStorage.getItem("user"));
-      const userid = auth._id;
-      
       // Convert price and stock to numbers
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        userid
+        stock: parseInt(formData.stock)
       };
       
       const response = await fetch(`${apiBaseUrl}/api/add`, {
