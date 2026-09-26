@@ -1,80 +1,136 @@
+```bash
 #!/bin/bash
 
+set -e
+
+# ============================================================
+# System Update
+# ============================================================
+
 sudo apt update
-sudo apt install unzip -y
+sudo apt install -y unzip
 
-# Install AWS CLI
 
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
+# ============================================================
+# AWS CLI
+# ============================================================
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+  -o awscliv2.zip
+
+unzip -q awscliv2.zip
+
+sudo ./aws/install \
+  -i /usr/local/aws-cli \
+  -b /usr/local/bin \
+  --update
+
+rm -rf aws awscliv2.zip
+
 aws --version
 
-# Install kubectl
+
+# ============================================================
+# kubectl
+# ============================================================
 
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin
-kubectl version --short --client
 
-# Install eksctl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/kubectl
+
+kubectl version --client
+
+
+# ============================================================
+# eksctl
+# ============================================================
 
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz"
+
 tar -xzf eksctl_Linux_amd64.tar.gz -C /tmp
+
 sudo install -m 0755 /tmp/eksctl /usr/local/bin/eksctl
-rm eksctl_Linux_amd64.tar.gz
-rm /tmp/eksctl
+
+rm -f eksctl_Linux_amd64.tar.gz
+rm -f /tmp/eksctl
+
 eksctl version
 
-# Install Helm
-sudo apt update
+
+# ============================================================
+# Helm
+# ============================================================
+
 curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
 helm version
 
-# Install Docker
+
+# ============================================================
+# Docker
+# ============================================================
 
 sudo apt update
-sudo apt install docker.io docker-compose-v2 -y
+sudo apt install -y docker.io docker-compose-v2
 
 sudo systemctl enable docker
 sudo systemctl start docker
 
-# add the current user to the docker group to run docker commands without sudo
-sudo usermod -aG docker ubuntu
-newgrp docker
+# Add current user to Docker group
+sudo usermod -aG docker "$USER"
 
-# Install Jenkins
+# Add Jenkins user to Docker group
+# Jenkins is installed below, so this is done again after installation.
+
+
+# ============================================================
+# Jenkins
+# ============================================================
 
 sudo apt update
-sudo apt install fontconfig openjdk-21-jre -y
+sudo apt install -y fontconfig openjdk-21-jre
+
 java -version
+
+# Jenkins repository key
+sudo mkdir -p /etc/apt/keyrings
 
 sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
   https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
 
 echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
-  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-  /etc/apt/sources.list.d/jenkins.list > /dev/null
+  https://pkg.jenkins.io/debian-stable binary/ | \
+  sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
 sudo apt update
-sudo apt install jenkins -y
+sudo apt install -y jenkins
 
 sudo systemctl enable jenkins
 sudo systemctl start jenkins
 
-# add the jenkins user to the docker group to run docker commands without sudo
+# Allow Jenkins to use Docker
 sudo usermod -aG docker jenkins
+newgrp docker
+
 sudo systemctl restart jenkins
 
-# Install Nginx
-sudo apt update
-sudo apt install nginx -y
 
-# Enable and start Nginx
+# ============================================================
+# Nginx
+# ============================================================
+
+sudo apt update
+sudo apt install -y nginx
+
 sudo systemctl enable nginx
 sudo systemctl start nginx
 
-# Configure Nginx as a reverse proxy for Jenkins
+
+# ============================================================
+# Jenkins Nginx Reverse Proxy
+# ============================================================
+
 sudo tee /etc/nginx/sites-available/jenkins > /dev/null <<'EOF'
 server {
     listen 80;
@@ -91,11 +147,50 @@ server {
 }
 EOF
 
-# Disable default Nginx site
+
+# ============================================================
+# Enable Jenkins Nginx Site
+# ============================================================
+
 sudo rm -f /etc/nginx/sites-enabled/default
 
-# Enable Jenkins site
-sudo ln -sf /etc/nginx/sites-available/jenkins /etc/nginx/sites-enabled/jenkins
+sudo ln -sf \
+  /etc/nginx/sites-available/jenkins \
+  /etc/nginx/sites-enabled/jenkins
 
-# Test configuration and reload Nginx
-sudo nginx -t && sudo systemctl reload nginx
+
+# ============================================================
+# Test and Reload Nginx
+# ============================================================
+
+sudo nginx -t
+
+sudo systemctl reload nginx
+
+
+# ============================================================
+# Done
+# ============================================================
+
+echo ""
+echo "============================================================"
+echo "Bastion bootstrap completed successfully!"
+echo "============================================================"
+echo ""
+echo "Installed:"
+echo "  - AWS CLI"
+echo "  - kubectl"
+echo "  - eksctl"
+echo "  - Helm"
+echo "  - Docker"
+echo "  - Docker Compose"
+echo "  - Jenkins"
+echo "  - Nginx"
+echo ""
+echo "Jenkins:"
+echo "  http://jenkins.rahegaonkar.online"
+echo ""
+echo "NOTE: Log out and log back in for the Docker group"
+echo "      change to apply to your current user."
+echo ""
+```
